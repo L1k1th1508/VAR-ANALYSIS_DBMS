@@ -1,6 +1,6 @@
 # Implementation architecture and milestone plan
 
-Status: awaiting user approval. This document proposes implementation; it does not authorize starting it. The user's request explicitly requires presentation and approval before coding. AGENTS.md and PROJECT_BLUEPRINT.docx are the project authorities, subject to the user's direct instructions.
+Status: the user approved this plan before implementation. PostgreSQL 16, schema/integrity, three roles, authentication, analytics and all eight page foundations are implemented. The user also approved date/local-clock fields with unknown timezone/UTC instant retained as null. After initially deferring ETL for fuller licensed coverage, the user requested a populated local dashboard; the limited StatsBomb World Cup 2022 adapter now provides that demonstration. See [source coverage](source_coverage.md). A fuller source and remaining management/deployment work are still outstanding. The sections below retain the approved design and acceptance criteria, not a claim that every milestone is complete.
 
 ## Scope and decisions for approval
 
@@ -78,7 +78,7 @@ Proposed module boundaries preserve the blueprint's named modules:
 | `data/demo/` | Only permitted, attributed source snapshots and a manifest |
 | `docs/` | ERD, schema, coverage, metrics, operations and demonstration guide |
 
-These directories describe the future layout; no implementation modules have been created.
+These directories describe the approved architecture; implemented modules follow this layout. The protected management service and CSV workflow remain pending.
 
 ## ETL and provenance lifecycle
 
@@ -187,8 +187,8 @@ Pytest will target only a separate test database/service. Tests cover the bluepr
 
 Use small permitted source-backed snapshots with documented expectations. Invalid-input tests may deliberately mutate copies inside the disposable test environment; such inputs are validation cases, never claimed as football observations or included in the demonstration dataset. No synthetic match will be published as project data.
 
-During implementation, document exact commands and results for unit tests, PostgreSQL integration tests, Compose validation and Streamlit smoke/visual checks. Do not report tests as passed until executed. No application tests were run during this planning phase because there is no implementation yet.
+Document exact commands and results for unit tests, PostgreSQL integration tests, Compose validation and Streamlit smoke/visual checks. Do not report tests as passed until executed. The latest executed results and remaining checks are recorded in [verification](verification.md).
 
-## Approval requested
+## Approval record
 
-Approve this plan, including the supporting MATCH_PLAYER relation and Docker-based PostgreSQL 16 target, to begin milestone 1. Provider selection is conditional on its evidence audit. No application code, dependency installation or database change is authorized by this document alone.
+The user approved this plan, including MATCH_PLAYER and Docker-based PostgreSQL 16. The later request to populate the dashboard authorizes the local, limited source demonstration described above. Unavailable fields remain unknown; no technology-stack change or synthetic football dataset is introduced.

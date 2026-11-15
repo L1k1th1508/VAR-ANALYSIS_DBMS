@@ -1,6 +1,6 @@
-# Proposed ER diagram
+# ER diagram
 
-Approval draft based on blueprint sections 5 and 9. All 20 required tables are retained. `MATCH_PLAYER` is one proposed supporting table for historically correct card/player/team validation. No SQL has been applied.
+Approved design based on blueprint sections 5 and 9, implemented in PostgreSQL 16. All 20 required tables are retained. `MATCH_PLAYER` is the approved supporting table for historically correct card/player/team validation. Migration 003 adds the approved source date/local-clock fields shown below; an unverified UTC kickoff remains null.
 
 ```mermaid
 erDiagram
@@ -41,6 +41,10 @@ erDiagram
         uuid home_team_id FK
         uuid away_team_id FK
         uuid venue_id FK
+        date match_date
+        time kickoff_local
+        text timezone_name
+        timestamptz kickoff_at
         bigint source_record_id FK
     }
     MATCH_OFFICIAL {

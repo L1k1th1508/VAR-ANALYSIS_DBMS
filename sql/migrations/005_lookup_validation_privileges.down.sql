@@ -1,0 +1,2 @@
+ALTER FUNCTION var.guard_decision() SECURITY INVOKER;
+ALTER FUNCTION var.assert_var() SECURITY INVOKER;

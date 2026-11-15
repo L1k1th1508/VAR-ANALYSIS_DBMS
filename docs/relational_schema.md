@@ -1,6 +1,6 @@
-# Proposed relational schema
+# Relational schema
 
-Approval draft, not executable DDL. PostgreSQL 16 and 3NF are required. Physical identifiers will be unquoted lowercase versions of the blueprint names. All 20 blueprint tables remain; one supporting table is proposed explicitly below.
+Approved schema implemented by the ordered SQL migrations in `sql/migrations`. PostgreSQL 16 and 3NF are required. Physical identifiers are unquoted lowercase versions of the blueprint names. All 20 blueprint tables remain; MATCH_PLAYER is the approved supporting table described below. The schema_migration ledger is infrastructure metadata.
 
 ## Conventions and normalization
 
@@ -36,7 +36,9 @@ Raw payloads belong in SOURCE_RECORD JSONB, not operational columns. Arrays of t
 
 Clock fields are `period_code smallint`, `minute integer nullable`, `second smallint nullable`, `stoppage_minute integer nullable`, and `source_order integer nullable`. Known values must be valid and nonnegative; seconds must be 0-59. Preserve the source's clock convention in raw payloads and document conversion per adapter. Do not impose a universal 90-minute ceiling or turn unknown seconds into measured zero. A decision period is required; unknown event time remains nullable and is displayed separately in chronological views. Shootout events use their own period code and do not enter added-time averages.
 
-Kickoff timestamps are timezone-aware only where the provider supplies a documented timezone. A date-only source must not be assigned a fabricated kickoff instant; it stays in raw data and is reported as incomplete until a date-only operational representation is approved. The expected candidate source timestamps will be audited before ingestion mappings are finalized.
+Approved amendment (migration 003): FOOTBALL_MATCH also contains nullable `match_date DATE`, `kickoff_local TIME` and `timezone_name TEXT`. Kickoff timestamps are timezone-aware only where the source timezone is verified. A known timezone requires both date and local clock, and a non-null kickoff_at requires a valid timezone and equality with that date/clock interpreted in that zone. The StatsBomb demo retains date/local clock while leaving timezone_name and kickoff_at null.
+
+Migrations 004 and 005 add reader-safe provenance/validation projections and narrowly scoped owner-executed validation triggers. The trigger functions use a fixed trusted search path so lookup-row locks do not require granting app_admin UPDATE on lookup vocabularies. Direct function execution remains revoked from application roles.
 
 The initial release records player cards; staff/bench-official disciplinary records must be classified as outside this table's scope and retained/reported, rather than assigned to fictitious players. Expansion requires an explicit schema proposal.
 
