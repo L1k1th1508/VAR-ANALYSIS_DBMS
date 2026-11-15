@@ -9,10 +9,11 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from streamlit.testing.v1 import AppTest
 
+from var_analytics.analytics_service import AnalyticsService, Scope
 from var_analytics.db import engine_for
 from var_analytics.extract import extract
 from var_analytics.load import load_snapshot
-from var_analytics.transform_validate import RecordValidationError, transform
+from var_analytics.transform_validate import RecordValidationError, identity, transform
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -41,6 +42,89 @@ def import_db(test_urls):
                 text("TRUNCATE var.source_record,var.import_batch,var.data_source RESTART IDENTITY CASCADE")
             )
             conn.execute(text("REFRESH MATERIALIZED VIEW var.mv_referee_stat_summary"))
+
+
+@pytest.fixture(scope="module")
+def premier_snapshot():
+    folder = ROOT / "data/raw/statsbomb-premier-league"
+    if not (folder / "demo_manifest.json").exists():
+        pytest.skip("Download Premier League 2015/16 with fetch_demo.py --dataset premier-league")
+    return extract(folder, expected_scope=(2, 27))
+
+
+def test_premier_full_season_mapping(premier_snapshot):
+    plan = transform(premier_snapshot)
+    assert len(plan["football_match"]) == 380
+    assert len(plan["team"]) == 20
+    assert len(plan["match_official"]) == 380
+    assert plan["league"][0]["competition_kind"] == "domestic"
+    assert plan["season"][0]["label"] == "2015/2016"
+    assert all(row["kickoff_at"] is None for row in plan["football_match"])
+    assert not any(r["period_code"] == 5 for r in plan["decision"])
+    assert "var_involvement" not in plan and "added_time" not in plan
+
+
+def test_premier_requires_explicit_supported_scope(premier_snapshot):
+    folder = ROOT / "data/raw/statsbomb-premier-league"
+    with pytest.raises(ValueError, match="explicitly selected"):
+        extract(folder)
+    with pytest.raises(ValueError, match="explicitly selected"):
+        extract(folder, expected_scope=(2, 44))
+
+
+@pytest.mark.integration
+def test_premier_coexists_with_world_cup(snapshot, premier_snapshot, import_db, test_urls, monkeypatch):
+    admin, owner = import_db
+    load_snapshot(admin, snapshot)
+    with owner.connect() as conn:
+        original = conn.execute(
+            text("SELECT decision_id,source_record_id FROM var.decision ORDER BY decision_id")
+        ).all()
+    assert (
+        load_snapshot(admin, premier_snapshot, transform_version="statsbomb-premierleague2015-v1")["status"]
+        == "success"
+    )
+    assert (
+        load_snapshot(admin, premier_snapshot, transform_version="statsbomb-premierleague2015-v1")["status"]
+        == "already_loaded"
+    )
+    with owner.begin() as conn:
+        assert conn.scalar(text("SELECT count(*) FROM var.football_match")) == 383
+        for did, record in original:
+            assert (
+                conn.scalar(
+                    text("SELECT source_record_id FROM var.decision WHERE decision_id=:id"), {"id": did}
+                )
+                == record
+            )
+        conn.execute(text("REFRESH MATERIALIZED VIEW var.mv_referee_stat_summary"))
+        assert (
+            conn.scalar(
+                text("SELECT sum(matches) FROM var.mv_referee_stat_summary WHERE season_id=:id"),
+                {"id": identity("season", "2/27")},
+            )
+            == 380
+        )
+    service = AnalyticsService(engine_for(test_urls["reader"]))
+    scope = Scope(league_id=identity("league", 2), season_id=identity("season", "2/27"))
+    assert int(service.totals(scope).matches) == 380
+    assert int(service.totals(scope).teams) == 20
+    assert len(service.catalog(Scope(league_id=identity("league", 43)))) == 3
+    assert service.reviews(scope).empty and service.added_time(scope).empty
+    assert int(service.teams(scope).matches.sum()) == 760
+    assert int(service.referees(scope).matches.sum()) == 380
+    monkeypatch.setenv("READER_DATABASE_URL", test_urls["reader"])
+    app = AppTest.from_file(str(ROOT / "app.py")).run(timeout=30)
+    app.selectbox[0].select(identity("league", 2)).run(timeout=30)
+    assert not app.exception and not app.error
+    assert app.metric[0].value == "380"
+    assert "2015/2016" in app.selectbox[1].options and "2022" not in app.selectbox[1].options
+    for name in ("var", "added_time"):
+        page = AppTest.from_string(f"from var_analytics.ui.pages import {name}\n{name}()")
+        page.session_state["scope"] = scope
+        page.run(timeout=30)
+        assert not page.exception and not page.error
+        assert any(("predates VAR" if name == "var" else "unavailable") in x.value for x in page.info)
 
 
 def test_source_mapping_preserves_known_counts_and_unknowns(snapshot):

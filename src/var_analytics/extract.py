@@ -26,11 +26,12 @@ def mapped_event(event: dict) -> bool:
     )
 
 
-def extract(folder: Path, manifest_name: str = "demo_manifest.json") -> Snapshot:
+def extract(folder: Path, manifest_name: str = "demo_manifest.json", *, expected_scope=(43, 106)) -> Snapshot:
     folder = folder.resolve()
     manifest = json.loads((folder / manifest_name).read_bytes())
-    if manifest["competition_id"] != 43 or manifest["season_id"] != 106:
-        raise ValueError("This adapter is audited for World Cup 2022 only")
+    scope = (manifest["competition_id"], manifest["season_id"])
+    if scope != expected_scope or scope not in {(43, 106), (2, 27)}:
+        raise ValueError("Manifest must match the explicitly selected supported competition and season")
     revision = manifest["revision"]
     if len(revision) != 40 or any(c not in "0123456789abcdef" for c in revision):
         raise ValueError("Expected a pinned source commit")
@@ -56,7 +57,7 @@ def extract(folder: Path, manifest_name: str = "demo_manifest.json") -> Snapshot
             }
         )
 
-    path = "data/matches/43/106.json"
+    path = f"data/matches/{scope[0]}/{scope[1]}.json"
     matches = read(path)
     selected = set(manifest["selected_match_ids"])
     if not selected or not selected.issubset({m["match_id"] for m in matches}):
@@ -65,6 +66,8 @@ def extract(folder: Path, manifest_name: str = "demo_manifest.json") -> Snapshot
         mid = match["match_id"]
         if mid not in selected:
             continue
+        if (match["competition"]["competition_id"], match["season"]["season_id"]) != scope:
+            raise ValueError("Match competition/season differs from the manifest")
         capture("match", mid, path, match)
         lineup_path = f"data/lineups/{mid}.json"
         for team in read(lineup_path):

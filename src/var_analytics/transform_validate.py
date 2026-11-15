@@ -123,7 +123,9 @@ def transform(snapshot: Snapshot) -> dict[str, list[dict]]:
                     locator,
                     league_id=league,
                     name=raw["competition"]["competition_name"],
-                    competition_kind="international",
+                    competition_kind="domestic"
+                    if raw["competition"]["competition_id"] == 2
+                    else "international",
                 )
                 put(
                     "season",

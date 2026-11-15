@@ -1,6 +1,6 @@
 # Premier League dataset assessment
 
-Checked 15 November 2026. This is source research, not an import. No account, subscription or Premier League database records were created.
+Source research checked 15 November 2026; implementation added 16 November 2026. Premier League 2015/16 now has an explicit downloader/import command and dashboard support. No paid account or subscription was created.
 
 ## Findings
 
@@ -27,7 +27,7 @@ Direct pinned sources:
 - [2015/16 match JSON](https://raw.githubusercontent.com/hudl/open-data/4b73468fc5b0f1950f9f66fada70ad3a4f9327cb/data/matches/2/27.json)
 - [2003/04 match JSON](https://raw.githubusercontent.com/hudl/open-data/4b73468fc5b0f1950f9f66fada70ad3a4f9327cb/data/matches/2/44.json)
 
-Only the match inventory was checked; all season event/lineup files have **not** been downloaded or validated. The 2003/04 subset must not be represented as a full season. Follow StatsBomb's [attribution instructions](https://github.com/hudl/open-data/blob/4b73468fc5b0f1950f9f66fada70ad3a4f9327cb/README.md) and [license](https://github.com/hudl/open-data/blob/4b73468fc5b0f1950f9f66fada70ad3a4f9327cb/LICENSE.pdf); public access is not blanket permission to redistribute provider files.
+The 2015/16 implementation consumes the pinned match inventory and every match's event/lineup files, with SHA-256 verification and Pydantic/Pandas validation. The 2003/04 inventory remains research only and is unsupported by the importer; its 38 matches must not be represented as a full season. Follow StatsBomb's [attribution instructions](https://github.com/hudl/open-data/blob/4b73468fc5b0f1950f9f66fada70ad3a4f9327cb/README.md) and [license](https://github.com/hudl/open-data/blob/4b73468fc5b0f1950f9f66fada70ad3a4f9327cb/LICENSE.pdf); provider files remain local and ignored.
 
 Both seasons predate Premier League VAR, introduced in [2019/20](https://www.premierleague.com/en/news/1747764). Historical scopes should distinguish “VAR not in use” from missing VAR data in a later season.
 
@@ -67,7 +67,7 @@ The [2024/25 Match Centre update for matchweeks 21–25](https://www.premierleag
 2. Pin the source version/capture time; preserve response hashes, URLs and import batches.
 3. Audit match IDs, dates, teams, scores, referee identities, player/event links and duplicate status updates.
 4. Measure coverage of original decisions, final outcomes, reviews versus checks, VAR/AVAR names, measured durations and announced minutes by period. Keep unsupported values unknown.
-5. Add an explicit adapter/scope and tests. Current `extract.py` rejects competition/season IDs other than `43 / 106`; changing a manifest alone is not a supported import.
+5. Add an explicit adapter/scope and tests for any additional season. Current `extract.py` accepts only explicitly selected `43 / 106` or `2 / 27`; changing a manifest alone is not a supported import.
 6. Preserve the World Cup demo and validate competition/season isolation and counts in the test database before application loading.
 
 No single free, complete VAR-era Premier League dataset covering all blueprint fields was verified in this search.

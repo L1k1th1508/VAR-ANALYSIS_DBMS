@@ -139,7 +139,7 @@ uv run --frozen ruff format --check .
 
 Complete step 4 first: supplement tests also need `demo_manifest.json`. Tests use `var_analytics_test` on port 55433 and guard destructive cleanup against the application database. The test database uses temporary storage; rerun its migrations after recreating it. Missing credentials or source fixtures can cause skipped tests—check the summary.
 
-The last implementation checkpoint passed **46 tests** and the live eight-page smoke check. The Python commands and Compose configuration were checked on Windows; fresh macOS/Linux installations and the application image have not been exercised. See [verification details](docs/verification.md).
+The latest checkpoint passed **49 tests** across two non-overlapping runs (eight ETL tests and 41 remaining tests), plus the live eight-page smoke check with both datasets. The Python commands and Compose configuration were checked on Windows; fresh macOS/Linux installations and the application image have not been exercised. See [verification details](docs/verification.md).
 
 ## Troubleshooting
 
@@ -157,11 +157,28 @@ The last implementation checkpoint passed **46 tests** and the live eight-page s
 | Supplement match mismatch | Import the pinned World Cup demo first. This is not a generic Premier League importer. |
 | Existing `.env` preserved | Expected on repeat setup. Continue using it if it belongs to this installation. |
 
-## Premier League dataset research
+## Add Premier League 2015/16
 
-The [Premier League source assessment](docs/premier_league_sources.md) includes checked links, coverage, usage restrictions and VAR/added-time gaps. The strongest verified historical match candidate compatible with the current provider is **StatsBomb's 2015/16 Premier League season: 380 matches, all with a named main referee**. It predates Premier League VAR and therefore cannot supply VAR reviews.
+After completing the database setup, download and import the supported Premier League season:
 
-Sportmonks and API-Football document VAR events, but season coverage and field semantics need authenticated sample validation. No Premier League data or adapter has been added yet; the current importer deliberately accepts only the documented World Cup 2022 snapshot.
+```sh
+uv run --frozen python scripts/fetch_demo.py --dataset premier-league
+uv run --frozen python -m var_analytics.cli import-premier-league
+```
+
+This retrieves 763 checksummed files into ignored `data/raw/statsbomb-premier-league` and adds **380 matches and 20 clubs** alongside the World Cup. Allow several minutes for the download. Repeating the successful import returns `already_loaded`. Select **Premier League** and **2015/2016** in the sidebar to explore its scores, main referees, players, decisions and cards. With both datasets loaded, Home shows **444 matches** across all leagues.
+
+The season predates VAR, introduced in 2019/20; its VAR page marks this as not applicable. Announced added time and review durations are unavailable. The 15 verified World Cup announcements remain confined to their own matches. Provider clocks are preserved as local times without inventing a timezone.
+
+Verify both loaded datasets while the app is running:
+
+```sh
+uv run --frozen python scripts/verify_demo.py --with-premier-league
+```
+
+Download this season before running the full development tests to include its mapping, idempotency, coexistence and filter tests. Without those source files, the Premier League tests are skipped. The [source assessment](docs/premier_league_sources.md) records coverage and alternatives for later VAR-era data.
+
+Sportmonks and API-Football document VAR events, but season coverage and field semantics need authenticated sample validation. The importer explicitly supports World Cup 2022 and Premier League 2015/16; it rejects other competition/season combinations.
 
 ## Project documents and remaining work
 

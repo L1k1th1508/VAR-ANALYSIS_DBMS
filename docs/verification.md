@@ -1,5 +1,15 @@
 # Verification checkpoint — 15 November 2026
 
+## Premier League extension — 16 November 2026
+
+- `python scripts/fetch_demo.py --dataset premier-league`: downloaded 763 checksummed files at the existing pinned provider revision.
+- `python -m var_analytics.cli import-premier-league`: successful batch 3, 11,888 retained observations. Added 380 matches, 20 clubs, 19 referees with 380 appointments, 644 players, 13,678 roster memberships, 10,555 decision events and 1,262 event-tagged cards.
+- This is Premier League 2015/16. VAR was not in use; announced added time and measured review durations are unavailable. No synthetic records or schema changes were introduced. World Cup evidence remains attached to its original matches.
+- `python -m pytest tests/test_etl.py -q --tb=short`: **8 passed in 633.10s**. Includes full-season mapping, explicit scope rejection, coexistence with World Cup data, idempotency, unchanged existing decision provenance, materialized-summary totals and dashboard filter/empty-state checks. Source extraction was unusually slow on this run; the season fixture is now shared within the test module to avoid repeated reads.
+- `python scripts/verify_demo.py --with-premier-league`: passed HTTP health, Premier League counts and sidebar selection, preserved World Cup counts, and all eight application pages. Combined match count is 444. Visual browser review remains pending.
+- Repeating `import-premier-league` returned `already_loaded` for batch 3. Lint, formatting, documentation links and staged privacy checks passed; no raw provider data or configured credentials are included in Git.
+- `python -m pytest -q --tb=short --ignore=tests/test_etl.py`: **41 passed in 143.99s**. Together with the eight ETL tests above, all **49 tests passed** across two non-overlapping runs.
+
 ## Executed
 
 - `python -m pytest -q --tb=short`: **46 passed in 99.60s**. Includes isolated PostgreSQL 16 integration, integrity and parent-update checks, three-role permissions, authentication, reversible migrations, analytical denominators, source checksums, idempotent imports, retained rejection evidence, domain rollback on database failure, and eight-page checks with empty and populated test data. The nine added supplement tests cover exact match/event reconciliation, invalid annotations, unchanged penalty-shot counts, missing timing, per-period averages, date filters, rollback and populated VAR/added-time charts.

@@ -84,12 +84,12 @@ def home(service, scope):
             catalog[["match_date", "home_team", "away_team", "home_score", "away_score", "main_referee"]]
         )
     st.caption(
-        "Local demo: FIFA World Cup 2022, supplied by StatsBomb Open Data. "
+        "Local datasets: FIFA World Cup 2022 and Premier League 2015/16, supplied by StatsBomb Open Data. "
         "Recorded events include fouls (including advantage), goals and penalty shots; "
         "they are not independent judgments of referee correctness."
     )
     st.info(
-        "Selected VAR reviews and announced added-time records are supplemented from cited match reports. "
+        "Selected World Cup VAR reviews and announced added-time records are supplemented from cited reports. "
         "Open VAR Analytics or Added Time Analytics for their coverage and sources. "
         "AVAR appointments and review durations remain unavailable."
     )
@@ -169,10 +169,18 @@ def referees(service, scope):
 
 @page("VAR Analytics")
 def var(service, scope):
+    catalog = service.catalog(scope)
+    historical = catalog[(catalog.league == "Premier League") & (catalog.season == "2015/2016")]
+    if not historical.empty:
+        st.info(
+            "Premier League 2015/16 predates VAR, introduced in 2019/20. VAR is not applicable to these matches."
+        )
+        if len(historical) == len(catalog):
+            return
     frame = service.reviews(scope)
     if empty(
         frame,
-        "VAR data is unavailable in the current database. A provider with explicit review evidence is required.",
+        "No VAR evidence is recorded for the selected scope. Explicit review evidence is required.",
     ):
         return
     reviews = frame[frame.review_kind == "review"]
@@ -351,7 +359,7 @@ def management(service, scope):
 def quality(service, scope):
     st.subheader("Source and coverage")
     st.write(
-        "This local demonstration uses StatsBomb Open Data for FIFA World Cup 2022. "
+        "This demonstration uses StatsBomb Open Data for FIFA World Cup 2022 and Premier League 2015/16. "
         "Source files are pinned to a recorded repository revision and verified by SHA-256 before import. "
         "Original observations and import results are retained locally. Raw source files are excluded from GitHub."
     )
@@ -366,13 +374,17 @@ def quality(service, scope):
         "and do not duplicate the same cards from lineup summaries."
     )
     st.info(
-        "Selected VAR outcomes and announced minutes are supplemented by manually verified facts from linked "
+        "Selected World Cup VAR outcomes and announced minutes are supplemented by verified facts from linked "
         "match reports and live coverage. These are real, selected cases, not a complete tournament dataset. "
         "AVAR names, measured review durations, kickoff timezone and UTC instant remain unknown."
     )
     st.write(
         "Unknown outcomes stay unknown. Rates use known eligible outcomes and show their denominators. "
         "Review durations require recorded timing. Announced added time is distinct from time actually played."
+    )
+    st.info(
+        "Premier League 2015/16 has no VAR because the technology was not in use. "
+        "Its announced added-time data is unavailable; event clocks do not establish announcements."
     )
     batches, rejected = service.quality()
     st.subheader("Import history")

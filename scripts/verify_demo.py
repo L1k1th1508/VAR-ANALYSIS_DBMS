@@ -1,5 +1,6 @@
 """Read-only smoke check of the running local demo and all eight populated pages."""
 
+import argparse
 from pathlib import Path
 
 import httpx
@@ -7,24 +8,40 @@ from dotenv import load_dotenv
 from streamlit.testing.v1 import AppTest
 
 from var_analytics.analytics_service import AnalyticsService, Scope
+from var_analytics.transform_validate import identity
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--with-premier-league", action="store_true")
+    args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     load_dotenv(root / ".env")
     response = httpx.get("http://127.0.0.1:8501/_stcore/health", timeout=10)
     response.raise_for_status()
     assert response.text == "ok"
     service = AnalyticsService()
-    totals = service.totals(Scope())
+    world_cup = Scope(league_id=identity("league", 43), season_id=identity("season", "43/106"))
+    totals = service.totals(world_cup)
     assert int(totals.matches) == 64 and int(totals.teams) == 32
     assert int(totals.decisions) == 1956 and int(totals.referees) == 29
     assert int(totals.reviews) == 6
     assert len(service.added_time_records(Scope())) == 15
-    assert int(service.teams(Scope()).cards.sum()) == 228
+    assert int(service.teams(world_cup).cards.sum()) == 228
+    if args.with_premier_league:
+        premier = Scope(league_id=identity("league", 2), season_id=identity("season", "2/27"))
+        assert int(service.totals(premier).matches) == 380
+        assert int(service.totals(premier).teams) == 20
+        assert int(service.referees(premier).matches.sum()) == 380
+        assert service.reviews(premier).empty and service.added_time(premier).empty
+        print("Premier League totals:", {k: int(v) for k, v in service.totals(premier).items()})
     root_app = AppTest.from_file(str(root / "app.py")).run(timeout=30)
     assert not root_app.exception and not root_app.error
-    assert root_app.metric[0].value == "64"
+    assert root_app.metric[0].value == str(int(service.totals(Scope()).matches))
+    if args.with_premier_league:
+        root_app.selectbox[0].select(identity("league", 2)).run(timeout=30)
+        assert not root_app.exception and not root_app.error
+        assert root_app.metric[0].value == "380"
     for name in ("home", "matches", "referees", "var", "teams", "added_time", "management", "quality"):
         page = AppTest.from_string(f"from var_analytics.ui.pages import {name}\n{name}()").run(timeout=30)
         assert not page.exception and not page.error, name
