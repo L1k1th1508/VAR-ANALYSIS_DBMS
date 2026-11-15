@@ -1,4 +1,5 @@
 from functools import wraps
+from uuid import NAMESPACE_URL, uuid5
 
 import plotly.express as px
 import streamlit as st
@@ -6,6 +7,8 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from var_analytics.analytics_service import AnalyticsService, Scope, rate
 from var_analytics.auth import authenticate, require_admin
+
+PREMIER_SAMPLE_SEASON = uuid5(NAMESPACE_URL, "cited-premier2024/season/2024/2025")
 
 COLORS = ["#236FA1", "#236B5B", "#9A5A00", "#B23A48", "#79589F", "#536774"]
 PERIODS = {1: "First half", 2: "Second half", 3: "Extra time: first half", 4: "Extra time: second half"}
@@ -17,7 +20,17 @@ def page(title):
         def render():
             st.title(title)
             try:
-                fn(AnalyticsService(), st.session_state.get("scope", Scope()))
+                service = AnalyticsService()
+                scope = st.session_state.get("scope", Scope())
+                catalog = service.catalog(scope)
+                sample = catalog[catalog.season_id == PREMIER_SAMPLE_SEASON]
+                if not sample.empty:
+                    st.info(
+                        f"Premier League 2024/25 is a selected {len(sample)}-match evidence sample, not a full season. "
+                        "It contains cited VAR cases and announcements only. Ordinary events, cards and official "
+                        "appointments are incomplete; absent records do not mean zero activity."
+                    )
+                fn(service, scope)
             except SQLAlchemyError:
                 st.error(
                     "The database query could not run. Check database health and apply the documented migrations."
@@ -84,12 +97,12 @@ def home(service, scope):
             catalog[["match_date", "home_team", "away_team", "home_score", "away_score", "main_referee"]]
         )
     st.caption(
-        "Local datasets: FIFA World Cup 2022 and Premier League 2015/16, supplied by StatsBomb Open Data. "
+        "Local datasets: StatsBomb World Cup 2022 and Premier League 2015/16, plus cited match facts. "
         "Recorded events include fouls (including advantage), goals and penalty shots; "
         "they are not independent judgments of referee correctness."
     )
     st.info(
-        "Selected World Cup VAR reviews and announced added-time records are supplemented from cited reports. "
+        "Selected World Cup VAR reviews and Premier League/World Cup added-time announcements use cited reports. "
         "Open VAR Analytics or Added Time Analytics for their coverage and sources. "
         "AVAR appointments and review durations remain unavailable."
     )
@@ -359,7 +372,8 @@ def management(service, scope):
 def quality(service, scope):
     st.subheader("Source and coverage")
     st.write(
-        "This demonstration uses StatsBomb Open Data for FIFA World Cup 2022 and Premier League 2015/16. "
+        "This demonstration uses StatsBomb Open Data for World Cup 2022 and Premier League 2015/16, "
+        "plus selected facts and announcements from cited reports. "
         "Source files are pinned to a recorded repository revision and verified by SHA-256 before import. "
         "Original observations and import results are retained locally. Raw source files are excluded from GitHub."
     )
@@ -374,7 +388,7 @@ def quality(service, scope):
         "and do not duplicate the same cards from lineup summaries."
     )
     st.info(
-        "Selected World Cup VAR outcomes and announced minutes are supplemented by verified facts from linked "
+        "Selected World Cup VAR outcomes and Premier League/World Cup announced minutes use facts from linked "
         "match reports and live coverage. These are real, selected cases, not a complete tournament dataset. "
         "AVAR names, measured review durations, kickoff timezone and UTC instant remain unknown."
     )
@@ -384,7 +398,8 @@ def quality(service, scope):
     )
     st.info(
         "Premier League 2015/16 has no VAR because the technology was not in use. "
-        "Its announced added-time data is unavailable; event clocks do not establish announcements."
+        "Only selected announced-time periods are verified; other periods remain unavailable. "
+        "Event clocks do not establish announcements."
     )
     batches, rejected = service.quality()
     st.subheader("Import history")

@@ -71,3 +71,17 @@ The [2024/25 Match Centre update for matchweeks 21–25](https://www.premierleag
 6. Preserve the World Cup demo and validate competition/season isolation and counts in the test database before application loading.
 
 No single free, complete VAR-era Premier League dataset covering all blueprint fields was verified in this search.
+
+## Selected 2015/16 announced time
+
+The user's chosen scope is the existing historical season: announced time only, with VAR not applicable. `data/supplements/premier_league_2015_added_time.json` contains three verified annotations. Import with `python -m var_analytics.cli import-premier-added-time` after the historical provider import.
+
+| Existing match | Period | Announced minutes | Evidence location |
+|---|---|---:|---|
+| Arsenal 2–1 Leicester City, 14 February 2016 (3754261) | First half | 2 | 45+1 entry |
+| Arsenal 2–1 Leicester City, 14 February 2016 (3754261) | Second half | 4 | 90-minute entry |
+| Chelsea 2–2 Tottenham Hotspur, 2 May 2016 (3754092) | Second half | 6 | 90-minute entry |
+
+Sources: Sports Mole's [Arsenal–Leicester live commentary](https://www.sportsmole.co.uk/football/arsenal/live-commentary/arsenal-2-1-leicester-city-as-it-happened_266367.html) and [Chelsea–Tottenham live commentary](https://www.sportsmole.co.uk/football/chelsea/live-commentary/chelsea-2-2-spurs-as-it-happened_271852.html). The report dates, participants and scores match the pinned provider identities. Values are explicitly stated additional minutes, not inferred from the final whistle or last event. Only factual annotations and citations are retained here.
+
+Coverage is two matches out of 380 and three recorded periods: first-half n=1, average minute component 2; second-half n=2, average 5. Chelsea's first half is absent, never zero-filled. Seconds precision is unknown. The announcement-only importer rejects VAR records, validates all existing match identities, protects announcement provenance and uses atomic writes with retained raw evidence. It creates no matches, decisions, cards or VAR activity.

@@ -155,7 +155,7 @@ def transform_evidence(snapshot: Snapshot) -> dict[str, list[dict]]:
     return rows
 
 
-def reconcile(conn, snapshot: Snapshot) -> None:
+def reconcile(conn, snapshot: Snapshot, *, season_key="43/106", source_code=SOURCE_CODE) -> None:
     """Require exact match/event identity; never guess joins from a team name or clock."""
     for item in snapshot.observations:
         raw = item["raw_payload"]
@@ -170,7 +170,13 @@ def reconcile(conn, snapshot: Snapshot) -> None:
             .mappings()
             .first()
         )
-        wanted = (expected.date, expected.home, expected.away, *expected.score, identity("season", "43/106"))
+        wanted = (
+            expected.date,
+            expected.home,
+            expected.away,
+            *expected.score,
+            identity("season", season_key),
+        )
         if match is None or tuple(match.values()) != wanted:
             raise RecordValidationError(item["record_locator"], "Existing match identity/date/score mismatch")
         fact = raw["fact"]
@@ -190,7 +196,7 @@ def reconcile(conn, snapshot: Snapshot) -> None:
                 WHERE a.match_id=:id AND a.period_code=:period"""),
                 {"id": mid, "period": fact["period"]},
             )
-            if source is not None and source != SOURCE_CODE:
+            if source is not None and source != source_code:
                 raise RecordValidationError(
                     item["record_locator"], "Announcement already belongs to another source"
                 )
@@ -213,3 +219,37 @@ def import_evidence(engine, snapshot: Snapshot) -> dict:
             attribution_text="Match evidence: England Football, The Guardian, Sky Sports, FourFourTwo and AS.",
         ),
     )
+
+
+def import_premier_added_time(engine, snapshot: Snapshot) -> dict:
+    """Announcement-only extension for the existing 2015/16 matches."""
+
+    def announcements_only(source):
+        if any(o["entity_kind"] != "added_time" for o in source.observations):
+            raise RecordValidationError(
+                source.observations[0]["record_locator"],
+                "2015/16 accepts announcements only; VAR not applicable",
+            )
+        return transform_evidence(source)
+
+    return load_snapshot(
+        engine,
+        snapshot,
+        transformer=announcements_only,
+        table_order=TABLE_ORDER_ANNOUNCEMENTS,
+        transform_version="cited-premier2015-announcements-v1",
+        preflight=lambda conn, source: reconcile(
+            conn, source, season_key="2/27", source_code="premier2015_announcements"
+        ),
+        source_info=dict(
+            source_code="premier2015_announcements",
+            name="Premier League 2015/16 cited announcements",
+            source_kind="manual",
+            reference_url="https://github.com/L1k1th1508/VAR-ANALYSIS_DBMS/blob/main/docs/premier_league_sources.md",
+            license_reference="Factual annotations with citations; linked articles retain publisher copyright.",
+            attribution_text="Announced-time evidence: Sports Mole live match coverage.",
+        ),
+    )
+
+
+TABLE_ORDER_ANNOUNCEMENTS = ["added_time"]

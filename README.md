@@ -139,7 +139,7 @@ uv run --frozen ruff format --check .
 
 Complete step 4 first: supplement tests also need `demo_manifest.json`. Tests use `var_analytics_test` on port 55433 and guard destructive cleanup against the application database. The test database uses temporary storage; rerun its migrations after recreating it. Missing credentials or source fixtures can cause skipped tests—check the summary.
 
-The latest checkpoint passed **49 tests** across two non-overlapping runs (eight ETL tests and 41 remaining tests), plus the live eight-page smoke check with both datasets. The Python commands and Compose configuration were checked on Windows; fresh macOS/Linux installations and the application image have not been exercised. See [verification details](docs/verification.md).
+The latest checkpoint passed **54 tests**, plus the live eight-page smoke check with the historical Premier League announcement supplement. The Python commands and Compose configuration were checked on Windows; fresh macOS/Linux installations and the application image have not been exercised. See [verification details](docs/verification.md).
 
 ## Troubleshooting
 
@@ -168,7 +168,7 @@ uv run --frozen python -m var_analytics.cli import-premier-league
 
 This retrieves 763 checksummed files into ignored `data/raw/statsbomb-premier-league` and adds **380 matches and 20 clubs** alongside the World Cup. Allow several minutes for the download. Repeating the successful import returns `already_loaded`. Select **Premier League** and **2015/2016** in the sidebar to explore its scores, main referees, players, decisions and cards. With both datasets loaded, Home shows **444 matches** across all leagues.
 
-The season predates VAR, introduced in 2019/20; its VAR page marks this as not applicable. Announced added time and review durations are unavailable. The 15 verified World Cup announcements remain confined to their own matches. Provider clocks are preserved as local times without inventing a timezone.
+The season predates VAR, introduced in 2019/20; its VAR page marks this as not applicable. Selected announced-time periods can be added with the supplement below; review durations are unavailable. The 15 verified World Cup announcements remain confined to their own matches. Provider clocks are preserved as local times without inventing a timezone.
 
 Verify both loaded datasets while the app is running:
 
@@ -179,6 +179,24 @@ uv run --frozen python scripts/verify_demo.py --with-premier-league
 Download this season before running the full development tests to include its mapping, idempotency, coexistence and filter tests. Without those source files, the Premier League tests are skipped. The [source assessment](docs/premier_league_sources.md) records coverage and alternatives for later VAR-era data.
 
 Sportmonks and API-Football document VAR events, but season coverage and field semantics need authenticated sample validation. The importer explicitly supports World Cup 2022 and Premier League 2015/16; it rejects other competition/season combinations.
+
+## Add verified 2015/16 announced time
+
+After importing the full historical season, load its cited announcement supplement:
+
+```sh
+uv run --frozen python -m var_analytics.cli import-premier-added-time
+```
+
+Select **Premier League → 2015/2016 → Added Time Analytics**. The supplement adds three records to existing matches: Arsenal–Leicester (14 February 2016), two minutes for the first half and four for the second; Chelsea–Tottenham (2 May 2016), six minutes for the second half. Chelsea's first-half announcement remains unverified. This is selected coverage across two of 380 matches, not a full-season announcement dataset. Missing periods and seconds stay unknown; VAR remains not applicable.
+
+No API key or new download is needed for this factual supplement. It is included with citations; source articles are not redistributed. Match IDs, dates, teams and scores are reconciled against the loaded provider data. Repeat imports do not duplicate records.
+
+```sh
+uv run --frozen python scripts/verify_demo.py --with-premier-league --with-premier-added-time
+```
+
+See [2015/16 announcement sources](docs/premier_league_sources.md#selected-201516-announced-time).
 
 ## Project documents and remaining work
 

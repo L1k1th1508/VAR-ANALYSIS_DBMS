@@ -1,5 +1,14 @@
 # Verification checkpoint — 15 November 2026
 
+## Premier League 2015/16 announcements — 16 November 2026
+
+- User-selected scope: announcements for the existing historical season; VAR remains not applicable.
+- `python -m var_analytics.cli import-premier-added-time`: successful batch 5 with three cited source observations and three announcement rows. No matches, decisions, cards or VAR rows created. Repetition returned `already_loaded`.
+- Verified periods: Arsenal–Leicester first half 2 minutes, second half 4 minutes; Chelsea–Tottenham second half 6 minutes. First-half sample n=1; second-half n=2. Missing periods/seconds remain unknown.
+- `python -m pytest tests/test_premier_added_time.py tests/test_supplements.py -q --tb=short`: **14 passed in 81.46s**. Checks include exact match/season reconciliation, retained failure evidence, rejection of VAR in the historical announcement importer, idempotency, existing decision preservation, aggregate means, provenance links and page behavior.
+- `python scripts/verify_demo.py --with-premier-league --with-premier-added-time`: HTTP health, preserved World Cup and historical Premier League counts, the three announcements and all eight pages passed. This uses AppTest, not browser visual review.
+- Final suite for the selected scope: `python -m pytest -q --tb=short --ignore=tests/test_premier_evidence.py`: **54 passed in 245.83s**. The ignored provisional VAR-era test file was subsequently removed from the source tree when the user selected the historical-only scope; the final tree contains these 54 tests. Lint, formatting, documentation links and staged privacy checks passed.
+
 ## Premier League extension — 16 November 2026
 
 - `python scripts/fetch_demo.py --dataset premier-league`: downloaded 763 checksummed files at the existing pinned provider revision.
