@@ -123,8 +123,15 @@ class AnalyticsService:
         return self.scoped(
             scope,
             """SELECT v.var_involvement_id,v.review_kind,v.outcome_code,v.duration_seconds,
-            m.match_id,m.home_team,m.away_team,m.match_date FROM var.var_involvement v
-            JOIN var.decision d USING(decision_id) JOIN scoped m ON m.match_id=d.match_id""",
+            m.match_id,m.home_team,m.away_team,m.match_date,m.main_referee,
+            m.home_team||' vs '||m.away_team match,
+            t.label category,v.description,v.period_code,v.minute,v.second,v.source_record_id,
+            split_part(p.record_locator,'#cited-',1) source_url
+            FROM var.var_involvement v
+            JOIN var.decision d USING(decision_id) JOIN scoped m ON m.match_id=d.match_id
+            JOIN var.decision_type t USING(decision_type_code)
+            JOIN var.v_source_provenance p ON p.source_record_id=v.source_record_id
+            ORDER BY m.match_date,v.period_code,v.minute NULLS LAST,v.var_involvement_id""",
         )
 
     def teams(self, scope: Scope):
@@ -157,6 +164,18 @@ class AnalyticsService:
     def provenance(self, source_record_id):
         return self.query(
             "SELECT * FROM var.v_source_provenance WHERE source_record_id=:id", {"id": int(source_record_id)}
+        )
+
+    def added_time_records(self, scope: Scope):
+        return self.scoped(
+            scope,
+            """SELECT m.match_id,m.match_date,
+            m.home_team||' vs '||m.away_team match,m.main_referee,
+            a.period_code,a.announced_minutes,a.announced_seconds,a.source_record_id,
+            split_part(p.record_locator,'#cited-',1) source_url
+            FROM var.added_time a JOIN scoped m USING(match_id)
+            JOIN var.v_source_provenance p ON p.source_record_id=a.source_record_id
+            ORDER BY m.match_date,a.period_code""",
         )
 
     def quality(self):

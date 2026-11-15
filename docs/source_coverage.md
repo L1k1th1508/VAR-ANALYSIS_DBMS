@@ -1,6 +1,6 @@
 # Local demonstration source and field coverage
 
-The user requested a populated local dashboard after initially deferring ingestion for a fuller licensed source. The local demo now uses real StatsBomb Open Data for all 64 FIFA World Cup 2022 matches. This is a limited source adapter; a fuller licensed source is still required for the unavailable VAR and added-time fields. No synthetic football records are used.
+The local demo uses real StatsBomb Open Data for all 64 FIFA World Cup 2022 matches, supplemented by selected cited match facts for VAR and announced added time. The supplement is deliberately partial; it does not establish tournament-wide VAR rates. No synthetic football records are used.
 
 ## Reproducibility and provenance
 
@@ -36,6 +36,26 @@ The user requested a populated local dashboard after initially deferring ingesti
 | Announced added time | No announcement evidence | Unavailable; final event clocks are not announcements |
 
 The import captures 2,189 original observations. Entity/table counts differ because a single source observation supports several normalized rows.
+
+## Cited VAR and announcement supplement
+
+`data/supplements/world_cup_2022_evidence.json` contains 21 manually verified factual annotations, each with a source URL and a location/context within that report. Sources are England Football, The Guardian, Sky Sports, FourFourTwo and AS. These facts supplement the provider limitations in the table above. Original articles, liveblogs and PDFs are not redistributed; their copyright remains with the publishers. The database hashes and preserves the annotation itself, not a claimed copy of the remote article.
+
+- Six selected reviews across six matches: England–Iran, Denmark–Tunisia, Tunisia–France, Japan–Spain, Croatia–Belgium and England–France. Five reversed an initial decision; one retained it. This is a selection of documented cases, not a representative sample or complete list of VAR interventions/checks. The displayed 5/6 rate applies only to these cases.
+- Three reviews link to existing provider events by exact event ID. Three additional parent decisions use GOAL_REVIEW or PENALTY_REVIEW categories, preserving the distinction from valid goals and penalty shots. Penalty-shot counts remain unchanged. The total decision count becomes 1,956.
+- Fifteen announced-time observations across seven matches, including all four periods of Argentina–France. First-half coverage is six records; second-half coverage is seven. England–France has only its second-half announcement. Both extra-time periods have one observation each, from the final. Missing periods are absent, never zero-filled or used to imply complete match totals.
+- Review clocks, review duration, VAR/AVAR identities and announcement seconds remain null. Reported incident minutes on newly created decisions are not copied to review-start times.
+- Period averages use the reported minute component and expose the number of records and seconds coverage. The six first-half observations sum to 32 minutes; the seven second-half observations sum to 50 minutes. Extra-time announcements in the final are one and three minutes.
+
+`supplements.py` validates the facts with Pydantic and Pandas, then checks exact match IDs, competition/season, dates, teams, scores and linked decision categories/periods against the existing database. It rejects conflicts with another announcement source. Import batches preserve evidence before validation; domain writes are atomic and deterministic. Repeating the same file is a no-op. The owner refreshes the referee materialized summary separately.
+
+### Announcement semantics audit
+
+FIFA full-time PDFs were evaluated locally with `scripts/audit_fifa_reports.py`. Their “Additional time” values do not consistently equal the original board announcement: for example, England–Iran shows 13 for the second half whereas the live report records an announcement of ten. These PDF values were **not imported** as announced minutes. The supplement uses explicit announcement reports, never the final event clock or elapsed stoppage time.
+
+### Page design
+
+Keep the existing white (#FFFFFF), ink (#18354A), blue (#236FA1), green (#236B5B), amber (#9A5A00) and red (#B23A48) palette, Source Sans body type and existing dashboard headings. Left-align the reading order: coverage → outcomes or period averages → match/category comparison → linked evidence. Horizontal match bars keep team names readable. Missing periods stay absent. Labels and tables convey the same distinctions as chart colors. The football-specific unit is a reviewed decision or announced period, rather than decorative scorecards or an unsupported performance ranking.
 
 ## Other candidate and source boundaries
 

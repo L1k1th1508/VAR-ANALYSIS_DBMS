@@ -2,7 +2,7 @@
 
 Referee & VAR Decision Analytics System, following the November 2026 v3 blueprint.
 
-Current status: approved implementation in progress. The eight-page local dashboard supports a verified World Cup 2022 demonstration: 64 matches, 32 teams, 29 named referees, 1,953 mapped events and 228 event-tagged cards. VAR outcomes, AVAR appointments, review durations and announced added time are unavailable in this source.
+Current status: approved implementation in progress. The eight-page local dashboard supports a verified World Cup 2022 demonstration: 64 matches, 32 teams, 29 named referees, 1,953 mapped provider events and 228 event-tagged cards. Cited match reports add six selected VAR reviews, three reviewed claims and 15 announced-time records across seven matches. Total decision rows: 1,956. VAR and added-time pages include charts, coverage counts and source links. AVAR appointments and measured review durations remain unavailable.
 
 ## Run locally
 
@@ -16,12 +16,13 @@ docker compose --profile test up -d db db-test
 .\.venv\Scripts\python.exe -m var_analytics.cli migrate --test
 .\.venv\Scripts\python.exe scripts/fetch_demo.py
 .\.venv\Scripts\python.exe -m var_analytics.cli import-demo
+.\.venv\Scripts\python.exe -m var_analytics.cli import-evidence
 .\.venv\Scripts\python.exe -m streamlit run app.py --server.address=127.0.0.1 --server.port=8501 --server.headless=true
 ```
 
 Open http://127.0.0.1:8501/. After the first import, viewing works offline with the database running. Repeating the import does not duplicate records. `setup_env.py` creates local credentials only when `.env` is absent; keep `.env` and `.cache/initial-admin-password.txt` private. Never remove the database volume as part of a routine restart.
 
-Data is downloaded directly from StatsBomb and excluded from this repository. See [source coverage, attribution and limitations](docs/source_coverage.md). The imported data stays in the PostgreSQL volume; the GitHub repository contains the code and documentation.
+Provider data is downloaded directly from StatsBomb and excluded from this repository. The small cited factual supplement is included in `data/supplements`; original articles and reports are not redistributed. See [source coverage, attribution and limitations](docs/source_coverage.md). The imported data stays in the PostgreSQL volume.
 
 ## Verify
 

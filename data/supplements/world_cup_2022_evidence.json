@@ -1,0 +1,39 @@
+{
+  "version": "cited-facts-v1",
+  "verified_on": "2026-11-15",
+  "method": "Manually verified factual annotations from the linked match reports and live coverage. Selected cases, not a complete VAR census. No article text or provider feed is redistributed.",
+  "matches": [
+    {"id": 3857271, "date": "2022-11-21", "home": "England", "away": "Iran", "score": [6, 2]},
+    {"id": 3857254, "date": "2022-11-22", "home": "Denmark", "away": "Tunisia", "score": [0, 0]},
+    {"id": 3857275, "date": "2022-11-30", "home": "Tunisia", "away": "France", "score": [1, 0]},
+    {"id": 3857255, "date": "2022-12-01", "home": "Japan", "away": "Spain", "score": [2, 1]},
+    {"id": 3857296, "date": "2022-12-01", "home": "Croatia", "away": "Belgium", "score": [0, 0]},
+    {"id": 3869354, "date": "2022-12-10", "home": "England", "away": "France", "score": [1, 2]},
+    {"id": 3869685, "date": "2022-12-18", "home": "Argentina", "away": "France", "score": [3, 3]}
+  ],
+  "announcements": [
+    {"match_id": 3857271, "period": 1, "minutes": 14, "source": "https://www.englandfootball.com/england/mens-senior-team/fixtures-results/2022/england-v-iran-fifa-world-cup-qatar-2022-monday-21-november-2022", "context": "Match report: first-half stoppage time, Sterling goal"},
+    {"match_id": 3857271, "period": 2, "minutes": 10, "source": "https://www.theguardian.com/football/live/2022/nov/21/england-v-iran-world-cup-2022-live-score-updates", "context": "90+3 entry, 15:04 GMT"},
+    {"match_id": 3857254, "period": 1, "minutes": 4, "source": "https://www.theguardian.com/football/live/2022/nov/22/denmark-v-tunisia-world-cup-2022-live-score-updates", "context": "45+1 entry, 13:48 GMT"},
+    {"match_id": 3857254, "period": 2, "minutes": 5, "source": "https://www.theguardian.com/football/live/2022/nov/22/denmark-v-tunisia-world-cup-2022-live-score-updates", "context": "90-minute entry, 14:51 GMT"},
+    {"match_id": 3857275, "period": 1, "minutes": 2, "source": "https://www.theguardian.com/football/live/2022/nov/30/tunisia-v-france-world-cup-2022-live-score-updates", "context": "45-minute entry"},
+    {"match_id": 3857275, "period": 2, "minutes": 8, "source": "https://www.theguardian.com/football/live/2022/nov/30/tunisia-v-france-world-cup-2022-live-score-updates", "context": "90-minute entry"},
+    {"match_id": 3857255, "period": 1, "minutes": 1, "source": "https://www.theguardian.com/football/live/2022/dec/01/japan-v-spain-world-cup-2022-live-score-updates", "context": "45-minute entry"},
+    {"match_id": 3857255, "period": 2, "minutes": 7, "source": "https://www.theguardian.com/football/live/2022/dec/01/japan-v-spain-world-cup-2022-live-score-updates", "context": "90-minute entry; excludes the parallel Germany match"},
+    {"match_id": 3857296, "period": 1, "minutes": 4, "source": "https://www.theguardian.com/football/live/2022/dec/01/croatia-v-belgium-world-cup-2022-live-score-updates", "context": "45-minute entry"},
+    {"match_id": 3857296, "period": 2, "minutes": 4, "source": "https://www.theguardian.com/football/live/2022/dec/01/croatia-v-belgium-world-cup-2022-live-score-updates", "context": "90+1 entry"},
+    {"match_id": 3869354, "period": 2, "minutes": 8, "source": "https://www.theguardian.com/football/live/2022/dec/10/england-v-france-world-cup-2022-quarter-final-live", "context": "90-minute entry, 20:50 GMT; first-half announcement not transcribed"},
+    {"match_id": 3869685, "period": 1, "minutes": 7, "source": "https://en.as.com/soccer/argentina-vs-france-in-world-cup-final-live-online-latest-news-and-updates-today-n-3/", "context": "45-minute entry"},
+    {"match_id": 3869685, "period": 2, "minutes": 8, "source": "https://en.as.com/soccer/argentina-vs-france-in-world-cup-final-live-online-latest-news-and-updates-today-n-3/", "context": "90-minute entry"},
+    {"match_id": 3869685, "period": 3, "minutes": 1, "source": "https://en.as.com/soccer/argentina-vs-france-in-world-cup-final-live-online-latest-news-and-updates-today-n-3/", "context": "105-minute entry"},
+    {"match_id": 3869685, "period": 4, "minutes": 3, "source": "https://en.as.com/soccer/argentina-vs-france-in-world-cup-final-live-online-latest-news-and-updates-today-n-3/", "context": "120-minute entry"}
+  ],
+  "reviews": [
+    {"key": "eng-irn-late-penalty", "match_id": 3857271, "period": 2, "minute": null, "category": "PENALTY", "outcome": "OVERTURNED", "linked_event_id": "39236484-ea4c-4c5b-9025-d7aeb7396aae", "summary": "A late VAR intervention led to Iran receiving a penalty for Stones holding Pouraliganji.", "source": "https://www.englandfootball.com/england/mens-senior-team/fixtures-results/2022/england-v-iran-fifa-world-cup-qatar-2022-monday-21-november-2022", "context": "Late penalty and VAR decision in match report/live commentary"},
+    {"key": "den-tun-handball", "match_id": 3857254, "period": 2, "minute": 94, "category": "PENALTY_REVIEW", "outcome": "UPHELD", "linked_event_id": null, "summary": "After a monitor review of Meriah's possible handball, Ramos retained the no-penalty decision.", "source": "https://www.skysports.com/football/news/12753002/denmark-0-0-tunisia-danes-held-to-stalemate-as-christian-eriksen-makes-major-tournament-return", "context": "90+4 incident and paragraph describing the unchanged decision"},
+    {"key": "tun-fra-griezmann", "match_id": 3857275, "period": 2, "minute": null, "category": "GOAL_REVIEW", "outcome": "OVERTURNED", "linked_event_id": null, "summary": "Griezmann's late equaliser was cancelled for offside after a pitchside review.", "source": "https://www.fourfourtwo.com/news/why-was-antoine-griezmanns-goal-given-as-offside-against-tunisia-at-world-cup-2022", "context": "Report of the equaliser and subsequent monitor review; review clock not specified"},
+    {"key": "jpn-esp-tanaka", "match_id": 3857255, "period": 2, "minute": null, "category": "GOAL", "outcome": "OVERTURNED", "linked_event_id": "62233fb1-7200-49ca-aa10-948d071008f0", "summary": "Tanaka's goal was awarded after VAR reversed the initial ball-out ruling.", "source": "https://www.skysports.com/football/news/12757077/world-cup-2022-japan-2-1-spain-ao-tanakas-controversial-goal-stuns-luis-enriques-side-but-both-sides-advance", "context": "How Japan stunned Spain: initial disallowance reversed; review clock not specified"},
+    {"key": "cro-bel-offside", "match_id": 3857296, "period": 1, "minute": 18, "category": "PENALTY_REVIEW", "outcome": "OVERTURNED", "linked_event_id": null, "summary": "Croatia's awarded penalty was withdrawn after VAR identified offside in the buildup.", "source": "https://www.skysports.com/football/news/12757081/world-cup-2022-croatia-0-0-belgium-romelu-lukaku-misses-big-chances-as-roberto-martinezs-golden-generation-knocked-out-and-croatia-reach-last-16", "context": "18-minute incident in Big moments and description of penalty cancellation"},
+    {"key": "eng-fra-mount", "match_id": 3869354, "period": 2, "minute": null, "category": "PENALTY", "outcome": "OVERTURNED", "linked_event_id": "7559464d-104b-4f53-b4f6-1f71e069fb0d", "summary": "VAR prompted a monitor review and a penalty for Hernandez's foul on Mount, initially overlooked.", "source": "https://www.skysports.com/football/england-vs-france/463023", "context": "Report paragraph describing the initially overlooked foul and pitchside monitor"}
+  ]
+}

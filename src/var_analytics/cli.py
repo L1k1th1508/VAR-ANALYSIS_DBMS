@@ -8,11 +8,15 @@ from var_analytics.db import engine_for
 from var_analytics.extract import extract
 from var_analytics.load import load_snapshot
 from var_analytics.migrate import migrate, refresh
+from var_analytics.supplements import extract_evidence, import_evidence
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Owner maintenance and source-backed imports")
-    parser.add_argument("command", choices=["migrate", "refresh", "import-demo"])
+    parser.add_argument("command", choices=["migrate", "refresh", "import-demo", "import-evidence"])
+    parser.add_argument(
+        "--evidence-file", type=Path, default=Path("data/supplements/world_cup_2022_evidence.json")
+    )
     parser.add_argument("--source-dir", type=Path, default=Path("data/raw/statsbomb"))
     parser.add_argument("--test", action="store_true", help="Use the isolated test database")
     args = parser.parse_args()
@@ -26,6 +30,12 @@ def main() -> None:
     elif args.command == "import-demo":
         snapshot = extract(args.source_dir)
         result = load_snapshot(engine_for(os.environ[f"{prefix}ADMIN_DATABASE_URL"]), snapshot)
+        refresh(os.environ[f"{prefix}OWNER_DATABASE_URL"])
+        print(result)
+    elif args.command == "import-evidence":
+        result = import_evidence(
+            engine_for(os.environ[f"{prefix}ADMIN_DATABASE_URL"]), extract_evidence(args.evidence_file)
+        )
         refresh(os.environ[f"{prefix}OWNER_DATABASE_URL"])
         print(result)
 

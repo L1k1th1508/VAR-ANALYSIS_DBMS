@@ -10,8 +10,28 @@ from var_analytics.extract import Snapshot
 from var_analytics.transform_validate import TABLE_ORDER, TRANSFORM_VERSION, RecordValidationError, transform
 
 
-def load_snapshot(engine, snapshot: Snapshot) -> dict:
+def load_snapshot(
+    engine,
+    snapshot: Snapshot,
+    *,
+    source_info=None,
+    transformer=None,
+    table_order=None,
+    transform_version=None,
+    preflight=None,
+) -> dict:
     """Requires app_admin credentials. Owner refresh is a separate maintenance action."""
+    table_order = TABLE_ORDER if table_order is None else table_order
+    transformer = transform if transformer is None else transformer
+    transform_version = transform_version or TRANSFORM_VERSION
+    source_info = source_info or dict(
+        source_code="statsbomb_open_data",
+        name="StatsBomb Open Data",
+        reference_url="https://github.com/hudl/open-data",
+        source_kind="provider",
+        license_reference=f"https://github.com/hudl/open-data/blob/{snapshot.revision}/LICENSE.pdf",
+        attribution_text="Data provided by StatsBomb. Local research demonstration; raw data not redistributed.",
+    )
     with engine.connect() as conn:
         if conn.scalar(text("SELECT current_user")) != "app_admin":
             raise PermissionError("Imports require the app_admin database role")
@@ -19,32 +39,25 @@ def load_snapshot(engine, snapshot: Snapshot) -> dict:
         conn.commit()
         try:
             metadata = MetaData(schema="var")
-            metadata.reflect(bind=conn, only=[*TABLE_ORDER, "data_source", "import_batch", "source_record"])
+            metadata.reflect(bind=conn, only=[*table_order, "data_source", "import_batch", "source_record"])
             conn.commit()
             tables = {t.name: t for t in metadata.tables.values()}
             source, batch, record = (tables[n] for n in ("data_source", "import_batch", "source_record"))
             with conn.begin():
                 conn.execute(
                     insert(source)
-                    .values(
-                        source_code="statsbomb_open_data",
-                        name="StatsBomb Open Data",
-                        reference_url="https://github.com/hudl/open-data",
-                        source_kind="provider",
-                        license_reference=f"https://github.com/hudl/open-data/blob/{snapshot.revision}/LICENSE.pdf",
-                        attribution_text="Data provided by StatsBomb. Local research demonstration; raw data not redistributed.",
-                    )
+                    .values(**source_info)
                     .on_conflict_do_nothing(index_elements=[source.c.source_code])
                 )
                 source_id = conn.scalar(
-                    select(source.c.data_source_id).where(source.c.source_code == "statsbomb_open_data")
+                    select(source.c.data_source_id).where(source.c.source_code == source_info["source_code"])
                 )
                 existing = (
                     conn.execute(
                         select(batch).where(
                             batch.c.data_source_id == source_id,
                             batch.c.input_fingerprint == snapshot.fingerprint,
-                            batch.c.transform_version == TRANSFORM_VERSION,
+                            batch.c.transform_version == transform_version,
                         )
                     )
                     .mappings()
@@ -61,7 +74,7 @@ def load_snapshot(engine, snapshot: Snapshot) -> dict:
                     .values(
                         data_source_id=source_id,
                         input_fingerprint=snapshot.fingerprint,
-                        transform_version=TRANSFORM_VERSION,
+                        transform_version=transform_version,
                         status="pending",
                         extracted_count=len(snapshot.observations),
                     )
@@ -97,9 +110,11 @@ def load_snapshot(engine, snapshot: Snapshot) -> dict:
                     ).all()
                 )
             try:
-                plan = transform(snapshot)
+                plan = transformer(snapshot)
                 with conn.begin():
-                    for name in TABLE_ORDER:
+                    if preflight is not None:
+                        preflight(conn, snapshot)
+                    for name in table_order:
                         table = tables[name]
                         values = [
                             {**row, "source_record_id": evidence[row["source_record_id"]]}

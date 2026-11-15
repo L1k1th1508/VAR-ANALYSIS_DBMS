@@ -18,7 +18,9 @@ def main():
     service = AnalyticsService()
     totals = service.totals(Scope())
     assert int(totals.matches) == 64 and int(totals.teams) == 32
-    assert int(totals.decisions) == 1953 and int(totals.referees) == 29
+    assert int(totals.decisions) == 1956 and int(totals.referees) == 29
+    assert int(totals.reviews) == 6
+    assert len(service.added_time_records(Scope())) == 15
     assert int(service.teams(Scope()).cards.sum()) == 228
     root_app = AppTest.from_file(str(root / "app.py")).run(timeout=30)
     assert not root_app.exception and not root_app.error

@@ -8,6 +8,7 @@ from var_analytics.analytics_service import AnalyticsService, Scope, rate
 from var_analytics.auth import authenticate, require_admin
 
 COLORS = ["#236FA1", "#236B5B", "#9A5A00", "#B23A48", "#79589F", "#536774"]
+PERIODS = {1: "First half", 2: "Second half", 3: "Extra time: first half", 4: "Extra time: second half"}
 
 
 def page(title):
@@ -29,6 +30,18 @@ def page(title):
 
 def show_table(frame):
     st.dataframe(frame, hide_index=True, width="stretch")
+
+
+def evidence_table(frame):
+    st.dataframe(
+        frame,
+        hide_index=True,
+        width="stretch",
+        column_config={
+            "source_url": st.column_config.LinkColumn("Source report", display_text="Read source"),
+            "source_record_id": st.column_config.NumberColumn("Evidence record", format="%d"),
+        },
+    )
 
 
 def chart(frame, x, y, title, **kwargs):
@@ -76,8 +89,9 @@ def home(service, scope):
         "they are not independent judgments of referee correctness."
     )
     st.info(
-        "VAR outcomes, AVAR appointments, review durations and announced added time are unavailable "
-        "in this source. Match, referee and team analytics use the recorded evidence."
+        "Selected VAR reviews and announced added-time records are supplemented from cited match reports. "
+        "Open VAR Analytics or Added Time Analytics for their coverage and sources. "
+        "AVAR appointments and review durations remain unavailable."
     )
 
 
@@ -162,13 +176,21 @@ def var(service, scope):
     ):
         return
     reviews = frame[frame.review_kind == "review"]
+    st.write("Explore the decisions that changed after video review, and those that stood.")
+    st.info(
+        f"Selected evidence covers {frame.match_id.nunique()} of {len(service.catalog(scope))} matches "
+        "in this scope. This is not a complete or representative VAR sample; routine checks are not catalogued. "
+        "Its outcome rate describes these recorded cases only."
+    )
     known = reviews[reviews.outcome_code.isin(["UPHELD", "OVERTURNED"])]
     overturned = int((known.outcome_code == "OVERTURNED").sum())
     fraction = rate(overturned, len(known))
     cols = st.columns(4)
     cols[0].metric("Recorded reviews", len(reviews))
     cols[1].metric("Recorded checks", int((frame.review_kind == "check").sum()))
-    cols[2].metric("Overturn rate", f"{fraction:.1%}" if fraction is not None else "Unavailable")
+    cols[2].metric(
+        "Recorded-case overturn rate", f"{fraction:.1%}" if fraction is not None else "Unavailable"
+    )
     cols[3].metric("Unknown review outcomes", len(reviews) - len(known))
     st.caption(
         f"Overturn denominator: {len(known)} reviews with recorded upheld/overturned outcomes. Checks are excluded."
@@ -188,7 +210,36 @@ def var(service, scope):
         .reset_index(name="records")
     )
     chart(outcomes, "outcome", "records", "Recorded VAR outcomes", color="review_kind", barmode="group")
-    show_table(frame)
+    categories = frame.groupby(["category", "outcome_code"], dropna=False).size().reset_index(name="reviews")
+    chart(
+        categories,
+        "reviews",
+        "category",
+        "Which decisions were reviewed?",
+        color="outcome_code",
+        barmode="group",
+        orientation="h",
+        labels={"outcome_code": "Outcome", "category": "Decision"},
+    )
+    st.subheader("Review evidence")
+    evidence_table(
+        frame[
+            [
+                "match_date",
+                "match",
+                "category",
+                "outcome_code",
+                "description",
+                "main_referee",
+                "duration_seconds",
+                "source_url",
+                "source_record_id",
+            ]
+        ]
+    )
+    st.caption(
+        "Main referee identifies the match appointment, not the video official. Missing review clocks and durations remain unknown."
+    )
 
 
 @page("Team Analytics")
@@ -208,12 +259,56 @@ def added_time(service, scope):
     frame = service.added_time(scope)
     if empty(frame, "Announced added time is unavailable. Final event times are not an announcement source."):
         return
-    chart(frame, "period_code", "mean_announced_minutes", "Mean announced minutes by period")
+    records = service.added_time_records(scope)
+    records["period"] = records.period_code.map(PERIODS)
+    frame["period"] = frame.period_code.map(PERIODS)
+    st.write("Compare the minimum additional minutes announced at the end of each period.")
+    cols = st.columns(3)
+    cols[0].metric("Recorded announcements", len(records))
+    cols[1].metric("Matches with evidence", records.match_id.nunique())
+    cols[2].metric("Matches in scope", len(service.catalog(scope)))
+    st.info(
+        "Coverage is partial. A missing period has no verified announcement; it is not zero. "
+        "Announced minutes are distinct from time actually played, which may run longer."
+    )
+    chart(
+        frame,
+        "period",
+        "mean_announced_minutes",
+        "Average announced minutes by period",
+        hover_data=["announcements"],
+        labels={"period": "Period", "mean_announced_minutes": "Minutes", "announcements": "Records"},
+    )
     st.caption(
         "This comparison uses the recorded minute component. Seconds coverage and sample sizes are shown below; "
         "unknown announcements are excluded, never treated as zero."
     )
-    show_table(frame)
+    show_table(frame.drop(columns="period_code"))
+    chart(
+        records,
+        "announced_minutes",
+        "match",
+        "Announced minutes by match and period",
+        color="period",
+        barmode="group",
+        orientation="h",
+        category_orders={"period": list(PERIODS.values())},
+        labels={"announced_minutes": "Minutes", "match": "Match", "period": "Period"},
+    )
+    st.subheader("Announcement evidence")
+    evidence_table(
+        records[
+            [
+                "match_date",
+                "match",
+                "period",
+                "announced_minutes",
+                "announced_seconds",
+                "source_url",
+                "source_record_id",
+            ]
+        ]
+    )
 
 
 @page("Data Management")
@@ -271,8 +366,9 @@ def quality(service, scope):
         "and do not duplicate the same cards from lineup summaries."
     )
     st.info(
-        "Unavailable: explicit VAR outcomes, AVAR names, measured review durations and announced added time. "
-        "Kickoff timezone and UTC instant remain unknown. A fuller licensed source is still needed for these fields."
+        "Selected VAR outcomes and announced minutes are supplemented by manually verified facts from linked "
+        "match reports and live coverage. These are real, selected cases, not a complete tournament dataset. "
+        "AVAR names, measured review durations, kickoff timezone and UTC instant remain unknown."
     )
     st.write(
         "Unknown outcomes stay unknown. Rates use known eligible outcomes and show their denominators. "

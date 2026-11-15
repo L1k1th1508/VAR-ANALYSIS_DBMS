@@ -9,6 +9,7 @@ COPY app.py ./
 COPY assets ./assets
 COPY sql ./sql
 COPY data/demo ./data/demo
+COPY data/supplements ./data/supplements
 COPY .streamlit ./.streamlit
 RUN useradd --create-home dashboard && chown -R dashboard:dashboard /app
 USER dashboard
