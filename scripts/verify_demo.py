@@ -13,12 +13,15 @@ from var_analytics.transform_validate import identity
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--port", type=int, default=8501, help="local Streamlit port (default: 8501)")
     parser.add_argument("--with-premier-league", action="store_true")
     parser.add_argument("--with-premier-added-time", action="store_true")
     args = parser.parse_args()
+    if not 1 <= args.port <= 65535:
+        parser.error("--port must be between 1 and 65535")
     root = Path(__file__).resolve().parents[1]
     load_dotenv(root / ".env")
-    response = httpx.get("http://127.0.0.1:8501/_stcore/health", timeout=10)
+    response = httpx.get(f"http://127.0.0.1:{args.port}/_stcore/health", timeout=10)
     response.raise_for_status()
     assert response.text == "ok"
     service = AnalyticsService()

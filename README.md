@@ -124,7 +124,7 @@ With the populated dashboard running, open a second terminal in the repository:
 uv run --frozen python scripts/verify_demo.py
 ```
 
-This checks HTTP health, expected demo counts and all eight pages. It expects the complete demo above and port 8501.
+This checks HTTP health, expected demo counts and all eight pages. It expects the complete demo above. If Streamlit is running on another port, pass it with `--port`, for example `--port 8502`.
 
 For development tests, start the separate disposable database and fetch the source-backed test fixture:
 
@@ -149,7 +149,7 @@ The latest checkpoint passed **54 tests**, plus the live eight-page smoke check 
 | Docker daemon unavailable | Start Docker Desktop/Engine; verify `docker version` shows a server. |
 | Database still starting | Check `docker compose ps db` and `docker compose logs --tail 50 db`. Wait for healthy status before migrating. |
 | Database port allocated | Stop the conflicting service. To change a port, update both the Compose host port and matching private `.env` URLs. |
-| Port 8501 busy | Stop the other app or use `--server.port=8502` and open that port. The smoke checker assumes 8501. |
+| Port 8501 busy | Stop the other app or launch Streamlit with `--server.port=8502` and run the smoke checker with `--port 8502`. |
 | Database authentication fails | Use credentials from the database's original setup. Editing environment passwords does not rotate existing passwords; deleting the volume is not a password fix. |
 | Missing tables/query error | From the repository root, run `uv run --frozen python -m var_analytics.cli migrate`. |
 | Empty dashboard | Complete both imports and clear sidebar date filters; select World Cup 2022. |
