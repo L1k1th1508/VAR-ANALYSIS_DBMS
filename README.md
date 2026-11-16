@@ -193,7 +193,7 @@ Select **Premier League → 2015/2016 → Added Time Analytics**. The supplement
 No API key or new download is needed for this factual supplement. It is included with citations; source articles are not redistributed. Match IDs, dates, teams and scores are reconciled against the loaded provider data. Repeat imports do not duplicate records.
 
 ```sh
-uv run --frozen python scripts/verify_demo.py --with-premier-league --with-premier-added-time
+uv run --frozen python scripts/verify_demo.py --with-premier-added-time
 ```
 
 See [2015/16 announcement sources](docs/premier_league_sources.md#selected-201516-announced-time).
