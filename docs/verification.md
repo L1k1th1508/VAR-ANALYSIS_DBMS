@@ -66,7 +66,7 @@ Source files and secrets stay local. GitHub contains the implementation, schema,
 ## Level 3 extension — 17 November 2026
 
 - Added Next.js 16.4.6 evaluation portal with Python AnalyticsService bridge and authenticated MongoDB research-note CRUD. Runtime Python dependency versions are constrained by uv.lock; npm uses package-lock.json.
-- `pytest -q -m 'not integration' --tb=short`: **25 passed, 54 deselected**. This includes the new UUID/null serialization regression test. The 54 database integration tests were not rerun in this checkpoint.
+- Full `pytest -q -rs`: **79 passed in 74.80s**, including all PostgreSQL integration tests. The isolated PostgreSQL 16 test container used a temporary image that preserves the repository role-init script but corrects its executable bit for Docker Desktop bind-mount behavior. No application database volume was used for destructive tests.
 - Ruff lint and formatting checks passed.
 - All seven read-only queries in `sql/evaluation_queries.sql` executed successfully using the local reader connection, including catalog introspection and EXPLAIN ANALYZE.
 - Production Next.js build passed. npm audit at build time reported zero known vulnerabilities.
@@ -75,3 +75,9 @@ Source files and secrets stay local. GitHub contains the implementation, schema,
 - Existing `python scripts/verify_demo.py` passed the health check, baseline World Cup totals and all eight pages. This local database has 64 World Cup matches; the Premier League download is available locally but was not imported into this application database during this change.
 - A full-disk Docker build failure was recovered by temporarily compressing downloaded Premier League JSON fixtures, restarting Docker and clearing older build cache. All 762 JSON files were restored afterward. No PostgreSQL volume was deleted.
 - Portal and both database containers are running locally. The notebook is an independent analyst document store; source coverage remains partial and does not support claims of referee bias or complete tournament VAR coverage.
+
+
+## Full Level 3 suite rerun — 17 November 2026
+
+- The isolated test database was started with a temporary local PostgreSQL image because macOS bind-mounts do not preserve executable permissions for the role initialization script. All 79 tests passed, including source-backed ETL, database integrity, RBAC, analytics, auth, migrations, supplementary data and Streamlit UI.
+- The test-only database was isolated under a separate Compose project and stopped after the run. The populated application database and MongoDB research notes were not used for tests.

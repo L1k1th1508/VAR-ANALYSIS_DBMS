@@ -45,7 +45,7 @@ PostgreSQL remains authoritative for imported football facts. MongoDB stores exp
 4. Open Data Management. Demonstrate CSV preview and a source-backed addition in the isolated test/demo environment. Explain all-or-nothing rollback and show import history.
 5. Run the read-only SQL examples in sql/evaluation_queries.sql. Explain joins, correlated queries, CTE and dense_rank.
 6. Show a negative integrity test and reader-write rejection from the test suite. Use the guarded test DB for invalid writes.
-7. Sign into the portal. Create an analyst note with real evidence URL, reload it, edit it and delete it after confirmation. Show the note collection through mongosh if requested. Explain what a document ID and updatedAt version do.
+7. Sign into the portal. Create an analyst note with real evidence URL, reload it, edit it and delete it after confirmation. Show the note collection through mongosh if requested. Explain what a document ID and incrementing revision do.
 8. Finish with data limitations, actual test results and the contribution history. Identify one extension each teammate can explain independently.
 
 ## Viva questions and answers
