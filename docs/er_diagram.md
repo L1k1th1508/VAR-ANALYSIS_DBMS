@@ -114,3 +114,16 @@ Country associations are optional where the source does not identify a country o
 For readability, provenance edges to every operational table are omitted. Each imported operational row references the source record supporting its current version; `SOURCE_RECORD -> IMPORT_BATCH -> DATA_SOURCE` supplies the lineage. Raw records from prior batches remain retained. Exact source identity and raw locators allow earlier versions to be traced without duplicating provider fields throughout the schema.
 
 The materialized view `mv_referee_stat_summary` derives statistics from matches, seasons, appointments, decisions, reviews and cards. It is a derived object rather than a separate entity. See the relational schema for composite keys, nullable attribution, trigger-enforced relationships and identity rules.
+
+## Evaluation extension approved 17 November 2026
+
+The MongoDB research notebook is outside the relational football ER model. Its documents contain `_id`, `title`, `body`, `sourceUrl`, `createdAt`, `updatedAt`, and an integer `revision`. Collection validation enforces required fields, types, and bounds. An updatedAt index supports the newest-first list. Notes describe analyst observations and do not write football facts or import provenance. No relational foreign key or distributed transaction crosses databases.
+
+```mermaid
+flowchart LR
+    Browser[Next.js browser interface] --> Routes[Next.js server routes]
+    Routes --> Bridge[Python AnalyticsService bridge]
+    Bridge --> PG[(PostgreSQL football facts)]
+    Routes --> Mongo[(MongoDB cited research notes)]
+    Streamlit[Streamlit eight-page dashboard] --> PG
+```

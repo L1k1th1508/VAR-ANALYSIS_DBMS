@@ -1,0 +1,39 @@
+# Add to the existing Compose file with: -f compose.yaml -f compose.evaluation.yaml
+services:
+  research-db:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: research_owner
+      MONGO_INITDB_ROOT_PASSWORD: ${POSTGRES_PASSWORD:?Run setup_env.py first}
+      RESEARCH_APP_PASSWORD: ${APP_ADMIN_PASSWORD:?Run setup_env.py first}
+    volumes:
+      - research_data:/data/db
+      - ./docker/002_research_user.js:/docker-entrypoint-initdb.d/002_research_user.js:ro
+    healthcheck:
+      test: [CMD, mongosh, --quiet, --eval, "quit(db.adminCommand('ping').ok ? 0 : 1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  evaluation-web:
+    build:
+      context: .
+      dockerfile: evaluation-web/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      research-db:
+        condition: service_healthy
+    environment:
+      READER_DATABASE_URL: postgresql+psycopg://app_reader:${APP_READER_PASSWORD}@db:5432/var_analytics
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?missing administrator hash}
+      MONGO_URL: mongodb://research_writer:${APP_ADMIN_PASSWORD}@research-db:27017/?authSource=var_research
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/session').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    ports: ["127.0.0.1:3000:3000"]
+    restart: unless-stopped
+volumes:
+  research_data:

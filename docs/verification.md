@@ -62,3 +62,16 @@ The ETL tests run only against `var_analytics_test`; their cleanup explicitly as
 - The importers are scoped to the documented World Cup 2022 snapshot and cited supplement. Exact supplemental match/event reconciliation is tested. Failed/pending identical batches require review; automated retry/recovery and general multi-provider reconciliation are not implemented.
 
 Source files and secrets stay local. GitHub contains the implementation, schema, tests, attribution logo and reproducible download/import instructions.
+
+## Level 3 extension — 17 November 2026
+
+- Added Next.js 16.4.6 evaluation portal with Python AnalyticsService bridge and authenticated MongoDB research-note CRUD. Runtime Python dependency versions are constrained by uv.lock; npm uses package-lock.json.
+- `pytest -q -m 'not integration' --tb=short`: **25 passed, 54 deselected**. This includes the new UUID/null serialization regression test. The 54 database integration tests were not rerun in this checkpoint.
+- Ruff lint and formatting checks passed.
+- All seven read-only queries in `sql/evaluation_queries.sql` executed successfully using the local reader connection, including catalog introspection and EXPLAIN ANALYZE.
+- Production Next.js build passed. npm audit at build time reported zero known vulnerabilities.
+- `python scripts/verify_portal.py` passed login, HttpOnly session cookie, authorization, invalid-field rejection, MongoDB CRUD, stale revision conflict checks, foreign-origin rejection and logout. Its temporary software-test note was removed.
+- Chromium browser workflow passed sign-in, note create/edit/confirmed delete and sign-out. Desktop 1440px and mobile 390px screenshots were visually reviewed, with no page JavaScript errors and no horizontal overflow of the document. Temporary browser-check notes were removed.
+- Existing `python scripts/verify_demo.py` passed the health check, baseline World Cup totals and all eight pages. This local database has 64 World Cup matches; the Premier League download is available locally but was not imported into this application database during this change.
+- A full-disk Docker build failure was recovered by temporarily compressing downloaded Premier League JSON fixtures, restarting Docker and clearing older build cache. All 762 JSON files were restored afterward. No PostgreSQL volume was deleted.
+- Portal and both database containers are running locally. The notebook is an independent analyst document store; source coverage remains partial and does not support claims of referee bias or complete tournament VAR coverage.

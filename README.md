@@ -208,3 +208,7 @@ Data Management is available after administrator sign-in. It supports CSV templa
 - [Project instructions](AGENTS.md) and [authoritative blueprint](PROJECT_BLUEPRINT.docx)
 
 Broader licensed VAR/added-time coverage, full application-container validation and browser visual review remain pending. Stored events and referee responsibility totals do not independently establish decision correctness or referee bias.
+
+## Level 3 evaluation extension
+
+The Next.js evaluation portal and MongoDB research notebook complement the existing eight-page Streamlit application. Start them with `docker compose -f compose.yaml -f compose.evaluation.yaml up -d --build --wait evaluation-web`, then open http://127.0.0.1:3000. The portal reuses Python/PostgreSQL analytics and the local administrator password. MongoDB stores cited analyst notes with authenticated create/read/update/delete controls. See [rubric mapping, demonstration and viva preparation](docs/level3_readiness.md) and [read-only SQL examples](sql/evaluation_queries.sql).

@@ -23,3 +23,7 @@ Preserve source provenance and distinguish real versus synthetic data. Do not fa
 4. Run relevant tests and report exact outcomes.
 5. Ask before destructive database changes, installing untrusted dependencies, or changing approved stack.
 6. Never commit secrets; use .env.example and ignored .env.
+
+## Approved Level 3 extension
+
+On 17 November 2026 the user approved extending the stack to satisfy the supplied Level 3 rubric. Next.js and MongoDB are permitted for the evaluation portal and cited research notebook described in docs/level3_readiness.md. PostgreSQL remains the authoritative store for football facts. Existing source-provenance, least-privilege and integrity requirements apply. Research notes must be identified as analyst annotations and must not invent missing football observations.

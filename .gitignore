@@ -12,3 +12,5 @@ htmlcov/
 output/
 data/raw/
 *.log
+node_modules/
+.next/
