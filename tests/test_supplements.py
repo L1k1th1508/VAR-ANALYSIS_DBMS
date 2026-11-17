@@ -14,8 +14,13 @@ from var_analytics.analytics_service import AnalyticsService, Scope
 from var_analytics.db import engine_for
 from var_analytics.extract import extract
 from var_analytics.load import load_snapshot
-from var_analytics.supplements import extract_evidence, import_evidence, transform_evidence
-from var_analytics.transform_validate import RecordValidationError
+from var_analytics.supplements import (
+    extract_evidence,
+    import_evidence,
+    import_world_cup_var,
+    transform_evidence,
+)
+from var_analytics.transform_validate import RecordValidationError, identity
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -26,22 +31,25 @@ def evidence():
 
 
 @pytest.fixture
-def evidence_db(test_urls, evidence):
+def evidence_db(test_urls, evidence, request):
     admin, owner = engine_for(test_urls["admin"]), engine_for(test_urls["owner"])
     with owner.connect() as conn:
         assert conn.scalar(text("SELECT current_database()")) == "var_analytics_test"
         assert conn.scalar(text("SELECT count(*) FROM var.import_batch")) == 0
     folder = ROOT / "data/raw/statsbomb"
     if not (folder / "demo_manifest.json").exists():
-        pytest.skip("Run scripts/fetch_demo.py for seven-match source evidence fixtures")
+        pytest.skip("Run scripts/fetch_demo.py for World Cup source evidence fixtures")
     base = extract(folder)
     selected = {o["raw_payload"]["match"]["id"] for o in evidence.observations}
+    if getattr(request, "param", None) == "complete":
+        completion = extract_evidence(ROOT / "data/supplements/world_cup_2022_var_completion.json")
+        selected.update(o["raw_payload"]["match"]["id"] for o in completion.observations)
     base.observations = [
         o
         for o in base.observations
         if (o["raw_payload"]["match_id"] if o["entity_kind"] == "match" else o["match_id"]) in selected
     ]
-    base.fingerprint = hashlib.sha256(b"test-seven-match-source-selection-v1").hexdigest()
+    base.fingerprint = hashlib.sha256(str(sorted(selected)).encode()).hexdigest()
     try:
         load_snapshot(admin, base)
         yield admin, owner
@@ -60,6 +68,65 @@ def test_cited_facts_preserve_missing_timing_and_event_semantics(evidence):
     assert all(r["duration_seconds"] is None and r["minute"] is None for r in plan["var_involvement"])
     assert all(r["announced_seconds"] is None for r in plan["added_time"])
     assert {r["decision_type_code"] for r in plan["decision"]} == {"GOAL_REVIEW", "PENALTY_REVIEW"}
+
+
+def test_complete_intervention_annotations_have_distinct_semantics(evidence):
+    completion = extract_evidence(ROOT / "data/supplements/world_cup_2022_var_completion.json")
+    original = {o["external_key"] for o in evidence.observations if o["entity_kind"] == "var_review"}
+    assert len(completion.observations) == 21
+    assert not original.intersection(o["external_key"] for o in completion.observations)
+    plan = transform_evidence(completion)
+    assert len(plan["decision"]) == 10 and len(plan["var_involvement"]) == 21
+    assert sum(r["outcome_code"] == "OVERTURNED" for r in plan["var_involvement"]) == 20
+    assert all(r["duration_seconds"] is None and r["minute"] is None for r in plan["var_involvement"])
+    by_key = {o["external_key"]: o["raw_payload"]["fact"] for o in completion.observations}
+    assert by_key["wal-irn-hennessey"]["category"] == "FOUL"
+    assert by_key["wal-irn-hennessey"]["linked_event_id"]
+    assert by_key["fra-pol-retake"]["category"] == "PENALTY_REVIEW"
+    assert "linked_event_id" not in by_key["fra-pol-retake"]
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("evidence_db", ["complete"], indirect=True)
+def test_full_var_import_preserves_originals_and_filters(evidence, evidence_db, test_urls, monkeypatch):
+    admin, owner = evidence_db
+    import_evidence(admin, evidence)
+    with owner.connect() as conn:
+        original = conn.execute(
+            text("SELECT var_involvement_id,source_record_id FROM var.var_involvement ORDER BY 1")
+        ).all()
+        base = conn.scalar(text("SELECT count(*) FROM var.decision"))
+        penalties = conn.scalar(text("SELECT count(*) FROM var.decision WHERE decision_type_code='PENALTY'"))
+    completion = extract_evidence(ROOT / "data/supplements/world_cup_2022_var_completion.json")
+    assert import_world_cup_var(admin, completion)["status"] == "success"
+    assert import_world_cup_var(admin, completion)["status"] == "already_loaded"
+    with owner.begin() as conn:
+        current = dict(
+            conn.execute(text("SELECT var_involvement_id,source_record_id FROM var.var_involvement")).all()
+        )
+        assert all(current[key] == record for key, record in original)
+        assert len(current) == 27
+        assert conn.scalar(text("SELECT count(*) FROM var.decision")) == base + 10
+        assert (
+            conn.scalar(text("SELECT count(*) FROM var.decision WHERE decision_type_code='PENALTY'"))
+            == penalties
+        )
+        conn.execute(text("REFRESH MATERIALIZED VIEW var.mv_referee_stat_summary"))
+    service = AnalyticsService(engine_for(test_urls["reader"]))
+    world_cup = Scope(league_id=identity("league", 43), season_id=identity("season", "43/106"))
+    reviews = service.reviews(world_cup)
+    assert len(reviews) == 27 and reviews.match_id.nunique() == 23
+    assert reviews.outcome_code.value_counts().to_dict() == {"OVERTURNED": 25, "UPHELD": 2}
+    assert reviews.duration_seconds.isna().all() and reviews.source_record_id.notna().all()
+    assert len(service.reviews(Scope(from_date=date(2022, 12, 4), to_date=date(2022, 12, 4)))) == 2
+    assert service.reviews(Scope(from_date=date(2022, 12, 18), to_date=date(2022, 12, 18))).empty
+    assert service.reviews(Scope(league_id=identity("league", 2))).empty
+    monkeypatch.setenv("READER_DATABASE_URL", test_urls["reader"])
+    app = AppTest.from_string("from var_analytics.ui.pages import var\nvar()").run(timeout=30)
+    assert not app.exception and not app.error
+    assert len(app.dataframe[-1].value) == 27
+    assert app.metric[0].value == "27" and app.metric[2].value == "92.6%"
+    assert any("27 interventions loaded" in info.value for info in app.info)
 
 
 @pytest.mark.parametrize("mutation", ["negative_minutes", "duplicate", "invented_duration", "bad_outcome"])

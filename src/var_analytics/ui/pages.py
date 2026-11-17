@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from var_analytics.analytics_service import AnalyticsService, Scope, rate
 from var_analytics.auth import authenticate, require_admin
+from var_analytics.transform_validate import identity
 
 PREMIER_SAMPLE_SEASON = uuid5(NAMESPACE_URL, "cited-premier2024/season/2024/2025")
 
@@ -102,7 +103,7 @@ def home(service, scope):
         "they are not independent judgments of referee correctness."
     )
     st.info(
-        "Selected World Cup VAR reviews and Premier League/World Cup added-time announcements use cited reports. "
+        "World Cup VAR interventions and Premier League/World Cup added-time announcements use cited reports. "
         "Open VAR Analytics or Added Time Analytics for their coverage and sources. "
         "AVAR appointments and review durations remain unavailable."
     )
@@ -199,10 +200,27 @@ def var(service, scope):
     reviews = frame[frame.review_kind == "review"]
     st.write("Explore the decisions that changed after video review, and those that stood.")
     st.info(
-        f"Selected evidence covers {frame.match_id.nunique()} of {len(service.catalog(scope))} matches "
-        "in this scope. This is not a complete or representative VAR sample; routine checks are not catalogued. "
-        "Its outcome rate describes these recorded cases only."
+        f"Recorded evidence covers {frame.match_id.nunique()} of {len(catalog)} matches in this scope. "
+        "Routine checks are not catalogued. The outcome rate describes recorded interventions, "
+        "not referee accuracy."
     )
+    if (catalog.season_id == identity("season", "43/106")).any():
+        tournament = service.reviews(
+            Scope(league_id=identity("league", 43), season_id=identity("season", "43/106"))
+        )
+        tournament = tournament[tournament.review_kind == "review"]
+        st.info(
+            f"World Cup 2022: {len(tournament)} interventions loaded; ESPN reports 27 "
+            "(25 overturns and two rejected recommendations). The France–Poland penalty award "
+            "and goalkeeper-encroachment retake are separate interventions. "
+            "League, season and date filters apply to the charts and table below."
+        )
+        st.markdown(
+            "Sources: [Dale Johnson's tournament review, ESPN](https://www.espn.com/soccer/story/_/id/37634070/"
+            "var-review-every-decision-world-cup-analysed) and "
+            "[27-intervention total, ESPN](https://africa.espn.com/football/story/_/id/37634830/"
+            "var-most-controversial-moments-2022-world-cup-griezmann-messi-kane-ronaldo)."
+        )
     known = reviews[reviews.outcome_code.isin(["UPHELD", "OVERTURNED"])]
     overturned = int((known.outcome_code == "OVERTURNED").sum())
     fraction = rate(overturned, len(known))

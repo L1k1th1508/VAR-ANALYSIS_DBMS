@@ -1,6 +1,6 @@
 # Local demonstration source and field coverage
 
-The local demo uses real StatsBomb Open Data for all 64 FIFA World Cup 2022 matches, supplemented by selected cited match facts for VAR and announced added time. The supplement is deliberately partial; it does not establish tournament-wide VAR rates. No synthetic football records are used.
+The local demo uses real StatsBomb Open Data for all 64 FIFA World Cup 2022 matches, supplemented by cited VAR interventions and selected announced added time. The completed intervention set contains the 27 reported interventions; routine checks and most announced-time periods remain unavailable. No synthetic football records are used.
 
 ## Reproducibility and provenance
 
@@ -41,7 +41,7 @@ The import captures 2,189 original observations. Entity/table counts differ beca
 
 `data/supplements/world_cup_2022_evidence.json` contains 21 manually verified factual annotations, each with a source URL and a location/context within that report. Sources are England Football, The Guardian, Sky Sports, FourFourTwo and AS. These facts supplement the provider limitations in the table above. Original articles, liveblogs and PDFs are not redistributed; their copyright remains with the publishers. The database hashes and preserves the annotation itself, not a claimed copy of the remote article.
 
-- Six selected reviews across six matches: England–Iran, Denmark–Tunisia, Tunisia–France, Japan–Spain, Croatia–Belgium and England–France. Five reversed an initial decision; one retained it. This is a selection of documented cases, not a representative sample or complete list of VAR interventions/checks. The displayed 5/6 rate applies only to these cases.
+- This first file contains six selected reviews across six matches: England–Iran, Denmark–Tunisia, Tunisia–France, Japan–Spain, Croatia–Belgium and England–France. Five reversed an initial decision; one retained it. With only this file loaded, the 5/6 rate describes these selected cases. Load the completion supplement below for all 27 reported interventions.
 - Three reviews link to existing provider events by exact event ID. Three additional parent decisions use GOAL_REVIEW or PENALTY_REVIEW categories, preserving the distinction from valid goals and penalty shots. Penalty-shot counts remain unchanged. The total decision count becomes 1,956.
 - Fifteen announced-time observations across seven matches, including all four periods of Argentina–France. First-half coverage is six records; second-half coverage is seven. England–France has only its second-half announcement. Both extra-time periods have one observation each, from the final. Missing periods are absent, never zero-filled or used to imply complete match totals.
 - Review clocks, review duration, VAR/AVAR identities and announcement seconds remain null. Reported incident minutes on newly created decisions are not copied to review-start times.
@@ -52,6 +52,23 @@ The import captures 2,189 original observations. Entity/table counts differ beca
 ### Announcement semantics audit
 
 FIFA full-time PDFs were evaluated locally with `scripts/audit_fifa_reports.py`. Their “Additional time” values do not consistently equal the original board announcement: for example, England–Iran shows 13 for the second half whereas the live report records an announcement of ten. These PDF values were **not imported** as announced minutes. The supplement uses explicit announcement reports, never the final event clock or elapsed stoppage time.
+
+### World Cup 2022 VAR completion
+
+[Dale Johnson's ESPN tournament review, 17 December 2022](https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed) identifies the interventions. His [19 December summary](https://africa.espn.com/football/story/_/id/37634830/var-most-controversial-moments-2022-world-cup-griezmann-messi-kane-ronaldo) reports 27: 25 overturns and two rejected recommendations. This is a reported intervention count, not a FIFA data feed or a count of every routine check. The original page required JavaScript during this audit; incident facts were read through indexed excerpts and a syndicated copy. Only brief factual annotations and original publisher links are distributed.
+
+`data/supplements/world_cup_2022_var_completion.json` adds the 21 missing entries across 17 other matches. It retains the six earlier reviews and their source records. The combined set covers 23 matches. The France–Poland penalty award and subsequent goalkeeper-encroachment retake are two distinct interventions. The retake has a separate PENALTY_REVIEW parent, so it does not invent another valid penalty shot. Hennessey's red-card review links to his existing FOUL event and the existing card remains unchanged.
+
+The importer adds ten reviewed claims, bringing the World Cup to 1,966 decisions (1,953 provider events plus 13 claims). Existing penalty-shot and card counts are preserved. Match IDs, dates, teams, scores, linked event categories and periods must reconcile with the pinned provider source before any domain records are committed. Unknown review clocks, durations and video-official identities remain null. The outcome rate is 25/27 (92.6%); it measures recorded reversals, not decision correctness. Date filters change the displayed subset and denominator.
+
+After the main demo and first evidence import, run:
+
+```sh
+uv run --frozen python -m var_analytics.cli import-world-cup-var
+uv run --frozen python scripts/verify_demo.py --with-world-cup-var
+```
+
+The dedicated source/batch and deterministic review IDs make repeat imports a no-op. No existing source evidence, matches or seasons are removed. League changes reset the season selector; the World Cup's only loaded season is 2022. Premier League seasons stay confined to Premier League.
 
 ### Page design
 

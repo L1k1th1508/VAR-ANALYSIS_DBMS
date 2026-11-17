@@ -1,4 +1,4 @@
-"""Import a small, explicitly cited set of real match facts, never a VAR census."""
+"""Import cited match facts with exact provider reconciliation and preserved provenance."""
 
 import hashlib
 import json
@@ -43,7 +43,7 @@ class Announcement(Fact):
 class Review(Fact):
     key: str = Field(min_length=1)
     minute: int | None = Field(default=None, ge=0)
-    category: Literal["PENALTY", "GOAL", "PENALTY_REVIEW", "GOAL_REVIEW"]
+    category: Literal["PENALTY", "GOAL", "FOUL", "PENALTY_REVIEW", "GOAL_REVIEW"]
     outcome: Literal["UPHELD", "OVERTURNED"]
     linked_event_id: UUID | None = None
     summary: str = Field(min_length=1)
@@ -253,3 +253,31 @@ def import_premier_added_time(engine, snapshot: Snapshot) -> dict:
 
 
 TABLE_ORDER_ANNOUNCEMENTS = ["added_time"]
+
+
+def import_world_cup_var(engine, snapshot: Snapshot) -> dict:
+    """Add the 21 missing interventions; retain the original six records and citations."""
+
+    def reviews_only(source):
+        if any(o["entity_kind"] != "var_review" for o in source.observations):
+            raise RecordValidationError(
+                source.observations[0]["record_locator"], "This supplement accepts VAR reviews only"
+            )
+        return transform_evidence(source)
+
+    return load_snapshot(
+        engine,
+        snapshot,
+        transformer=reviews_only,
+        table_order=["decision", "var_involvement"],
+        transform_version="cited-worldcup2022-var-completion-v1",
+        preflight=reconcile,
+        source_info=dict(
+            source_code="worldcup2022_var_completion",
+            name="World Cup 2022 remaining cited VAR interventions",
+            source_kind="manual",
+            reference_url="https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+            license_reference="Brief factual annotations only; ESPN retains copyright in its reporting.",
+            attribution_text="Interventions: Dale Johnson, ESPN, 17 December 2022. Match/event identity: StatsBomb.",
+        ),
+    )

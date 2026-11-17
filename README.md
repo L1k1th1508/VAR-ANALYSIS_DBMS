@@ -11,13 +11,13 @@ The setup below downloads real World Cup 2022 data into your own local database.
 | Home Dashboard | Match, team, referee and decision totals |
 | Match Explorer | Scores, appointments, event chronology and source evidence |
 | Referee Analytics | Recorded match responsibilities, cards and penalty shots |
-| VAR Analytics | Selected review outcomes, categories and source reports |
+| VAR Analytics | 27 cited World Cup interventions, outcomes, categories and source reports |
 | Team Analytics | Recorded team involvement, cards and penalty shots |
 | Added Time Analytics | Announced minutes by period and match, with citations |
 | Data Management | Administrator sign-in, CSV previews/imports/exports, record forms, edits and confirmed deletions |
 | Data Quality and Methodology | Import history, validation, coverage and limitations |
 
-The demo has **64 matches, 32 teams, 29 named referees, 1,956 decision rows and 228 event-tagged cards**. Decision rows comprise 1,953 provider events and three additional reviewed claims. A cited supplement adds **six selected VAR reviews and 15 announced-time records across seven matches**. VAR/added-time coverage is partial. Review durations and VAR/AVAR appointments remain unavailable; no synthetic football data is used.
+The full World Cup demo has **64 matches, 32 teams, 29 named referees, 1,966 decision rows and 228 event-tagged cards**. Decision rows comprise 1,953 provider events and 13 reviewed claims. Two cited supplements provide **27 VAR interventions (25 overturns, two retained decisions)** and **15 announced-time records across seven matches**. The intervention count includes a separate penalty-retake decision; routine checks are not catalogued. Announced-time coverage is partial. Review durations and VAR/AVAR appointments remain unavailable; no synthetic football data is used. See the [sources and counting rules](docs/source_coverage.md#world-cup-2022-var-completion).
 
 ## 1. Install prerequisites
 
@@ -81,6 +81,7 @@ docker compose ps db
 uv run --frozen python scripts/fetch_demo.py
 uv run --frozen python -m var_analytics.cli import-demo
 uv run --frozen python -m var_analytics.cli import-evidence
+uv run --frozen python -m var_analytics.cli import-world-cup-var
 ```
 
 The download retrieves 131 files from a pinned StatsBomb revision into ignored `data/raw/statsbomb`. Allow several minutes depending on your connection. Import validates hashes and records and preserves provenance. Load the main demo **before** the supplement: the supplement reconciles against existing match/event IDs.
@@ -95,7 +96,7 @@ Provider files are downloaded directly, not redistributed here. Review [StatsBom
 uv run --frozen streamlit run app.py --server.address=127.0.0.1 --server.port=8501 --server.headless=true
 ```
 
-Open **[http://127.0.0.1:8501/](http://127.0.0.1:8501/)** on the same computer. Keep the terminal running. Use the sidebar to select a page and competition, season or date filters. With the full demo selected, Home should show 64 matches and six recorded VAR reviews.
+Open **[http://127.0.0.1:8501/](http://127.0.0.1:8501/)** on the same computer. Keep the terminal running. With FIFA World Cup selected, the season selector shows only **2022** and Home shows **64 matches and 27 recorded VAR reviews**. Changing leagues resets the season to one belonging to that league. Premier League displays its loaded seasons only.
 
 After initial setup and loading, analytics work offline with the database running. External source links still require internet access.
 
@@ -121,7 +122,7 @@ You do not need to regenerate credentials, download or reimport data. The `pgdat
 With the populated dashboard running, open a second terminal in the repository:
 
 ```sh
-uv run --frozen python scripts/verify_demo.py
+uv run --frozen python scripts/verify_demo.py --with-world-cup-var
 ```
 
 This checks HTTP health, expected demo counts and all eight pages. It expects the complete demo above. If Streamlit is running on another port, pass it with `--port`, for example `--port 8502`.
@@ -139,7 +140,7 @@ uv run --frozen ruff format --check .
 
 Complete step 4 first: supplement tests also need `demo_manifest.json`. Tests use `var_analytics_test` on port 55433 and guard destructive cleanup against the application database. The test database uses temporary storage; rerun its migrations after recreating it. Missing credentials or source fixtures can cause skipped tests—check the summary.
 
-The latest full regression run passed **77 tests**, including authenticated record management, CSV import/export and validation, plus read-only checks of all 15 administrator form/export types on the local database. A cited evaluation CSV is also supplied for an explicit import demonstration. The Python commands and Compose configuration were checked on Windows; fresh macOS/Linux installations and the application image have not been exercised. See [verification details](docs/verification.md).
+The latest full regression run passed **77 tests**. The subsequent World Cup VAR completion and league-season changes passed **12 targeted tests**, plus all eight populated page checks. Earlier verification includes authenticated record management, CSV import/export, validation and read-only checks of all 15 administrator form/export types. A cited evaluation CSV is supplied for an explicit import demonstration. The Python commands and Compose configuration were checked on Windows; fresh macOS/Linux installations and the application image have not been exercised. See [verification details](docs/verification.md).
 
 ## Troubleshooting
 
@@ -152,7 +153,7 @@ The latest full regression run passed **77 tests**, including authenticated reco
 | Port 8501 busy | Stop the other app or launch Streamlit with `--server.port=8502` and run the smoke checker with `--port 8502`. |
 | Database authentication fails | Use credentials from the database's original setup. Editing environment passwords does not rotate existing passwords; deleting the volume is not a password fix. |
 | Missing tables/query error | From the repository root, run `uv run --frozen python -m var_analytics.cli migrate`. |
-| Empty dashboard | Complete both imports and clear sidebar date filters; select World Cup 2022. |
+| Empty dashboard | Complete all three demo imports and clear sidebar date filters; select World Cup 2022. |
 | Missing manifest/checksum error | Complete `scripts/fetch_demo.py` before import. Do not edit downloaded provider files. |
 | Supplement match mismatch | Import the pinned World Cup demo first. This is not a generic Premier League importer. |
 | Existing `.env` preserved | Expected on repeat setup. Continue using it if it belongs to this installation. |
@@ -173,7 +174,7 @@ The season predates VAR, introduced in 2019/20; its VAR page marks this as not a
 Verify both loaded datasets while the app is running:
 
 ```sh
-uv run --frozen python scripts/verify_demo.py --with-premier-league
+uv run --frozen python scripts/verify_demo.py --with-world-cup-var --with-premier-league
 ```
 
 Download this season before running the full development tests to include its mapping, idempotency, coexistence and filter tests. Without those source files, the Premier League tests are skipped. The [source assessment](docs/premier_league_sources.md) records coverage and alternatives for later VAR-era data.
@@ -193,7 +194,7 @@ Select **Premier League → 2015/2016 → Added Time Analytics**. The supplement
 No API key or new download is needed for this factual supplement. It is included with citations; source articles are not redistributed. Match IDs, dates, teams and scores are reconciled against the loaded provider data. Repeat imports do not duplicate records.
 
 ```sh
-uv run --frozen python scripts/verify_demo.py --with-premier-added-time
+uv run --frozen python scripts/verify_demo.py --with-world-cup-var --with-premier-added-time
 ```
 
 See [2015/16 announcement sources](docs/premier_league_sources.md#selected-201516-announced-time).

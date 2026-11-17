@@ -1,0 +1,422 @@
+{
+  "version": "cited-facts-v1",
+  "verified_on": "2026-11-17",
+  "method": "Brief factual annotations from Dale Johnson's ESPN tournament review (17 December 2022), read via search-indexed excerpts and a syndicated copy while the original page required JavaScript. Includes the separate France-Poland goalkeeper-encroachment retake. Together with the six earlier annotations: 27 interventions, 25 overturns and two rejected recommendations. Excludes routine checks. Exact match/event identities reconciled against pinned StatsBomb data. No articles or invented timings redistributed.",
+  "matches": [
+    {
+      "id": 3857273,
+      "date": "2022-11-25",
+      "home": "Wales",
+      "away": "Iran",
+      "score": [
+        0,
+        2
+      ]
+    },
+    {
+      "id": 3857297,
+      "date": "2022-11-26",
+      "home": "Poland",
+      "away": "Saudi Arabia",
+      "score": [
+        2,
+        0
+      ]
+    },
+    {
+      "id": 3857294,
+      "date": "2022-11-29",
+      "home": "Netherlands",
+      "away": "Qatar",
+      "score": [
+        2,
+        0
+      ]
+    },
+    {
+      "id": 3857284,
+      "date": "2022-11-23",
+      "home": "Germany",
+      "away": "Japan",
+      "score": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": 3857265,
+      "date": "2022-11-22",
+      "home": "Mexico",
+      "away": "Poland",
+      "score": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": 3857268,
+      "date": "2022-11-23",
+      "home": "Belgium",
+      "away": "Canada",
+      "score": [
+        1,
+        0
+      ]
+    },
+    {
+      "id": 3857269,
+      "date": "2022-11-28",
+      "home": "Brazil",
+      "away": "Switzerland",
+      "score": [
+        1,
+        0
+      ]
+    },
+    {
+      "id": 3857292,
+      "date": "2022-12-01",
+      "home": "Costa Rica",
+      "away": "Germany",
+      "score": [
+        2,
+        4
+      ]
+    },
+    {
+      "id": 3857264,
+      "date": "2022-11-30",
+      "home": "Poland",
+      "away": "Argentina",
+      "score": [
+        0,
+        2
+      ]
+    },
+    {
+      "id": 3869152,
+      "date": "2022-12-04",
+      "home": "France",
+      "away": "Poland",
+      "score": [
+        3,
+        1
+      ]
+    },
+    {
+      "id": 3857270,
+      "date": "2022-11-28",
+      "home": "Portugal",
+      "away": "Uruguay",
+      "score": [
+        2,
+        0
+      ]
+    },
+    {
+      "id": 3857263,
+      "date": "2022-11-27",
+      "home": "Spain",
+      "away": "Germany",
+      "score": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": 3857259,
+      "date": "2022-11-28",
+      "home": "Cameroon",
+      "away": "Serbia",
+      "score": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": 3857283,
+      "date": "2022-11-27",
+      "home": "Belgium",
+      "away": "Morocco",
+      "score": [
+        0,
+        2
+      ]
+    },
+    {
+      "id": 3857286,
+      "date": "2022-11-20",
+      "home": "Qatar",
+      "away": "Ecuador",
+      "score": [
+        0,
+        2
+      ]
+    },
+    {
+      "id": 3857300,
+      "date": "2022-11-22",
+      "home": "Argentina",
+      "away": "Saudi Arabia",
+      "score": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": 3857293,
+      "date": "2022-12-02",
+      "home": "Ghana",
+      "away": "Uruguay",
+      "score": [
+        0,
+        2
+      ]
+    }
+  ],
+  "announcements": [],
+  "reviews": [
+    {
+      "key": "qat-ecu-valencia",
+      "match_id": 3857286,
+      "period": 1,
+      "minute": 3,
+      "category": "GOAL_REVIEW",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Valencia goal disallowed: offside."
+    },
+    {
+      "key": "arg-sau-paredes",
+      "match_id": 3857300,
+      "period": 1,
+      "minute": null,
+      "category": "PENALTY",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Paredes held; penalty awarded.",
+      "linked_event_id": "87e2e8be-e11d-43d6-b9fd-fab92bf1bfb1"
+    },
+    {
+      "key": "arg-sau-martinez",
+      "match_id": 3857300,
+      "period": 1,
+      "minute": 27,
+      "category": "GOAL_REVIEW",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Martinez goal disallowed: offside."
+    },
+    {
+      "key": "mex-pol-lewandowski",
+      "match_id": 3857265,
+      "period": 2,
+      "minute": null,
+      "category": "PENALTY",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Lewandowski fouled; penalty awarded.",
+      "linked_event_id": "5ee0aff8-6137-437a-84a3-320adf30aed6"
+    },
+    {
+      "key": "bel-can-handball",
+      "match_id": 3857268,
+      "period": 1,
+      "minute": null,
+      "category": "PENALTY",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Carrasco handball; penalty awarded.",
+      "linked_event_id": "a0849b15-1abc-4429-ac77-9fd4d65c0c4a"
+    },
+    {
+      "key": "ger-jpn-havertz",
+      "match_id": 3857284,
+      "period": 1,
+      "minute": null,
+      "category": "GOAL_REVIEW",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Havertz goal disallowed: offside."
+    },
+    {
+      "key": "wal-irn-gholizadeh",
+      "match_id": 3857273,
+      "period": 1,
+      "minute": 15,
+      "category": "GOAL_REVIEW",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Gholizadeh goal disallowed: offside."
+    },
+    {
+      "key": "wal-irn-hennessey",
+      "match_id": 3857273,
+      "period": 2,
+      "minute": null,
+      "category": "FOUL",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Hennessey caution upgraded: red.",
+      "linked_event_id": "f3d27ab6-1a90-4b45-980d-c9e04d9b3764"
+    },
+    {
+      "key": "pol-sau-alshehri",
+      "match_id": 3857297,
+      "period": 1,
+      "minute": null,
+      "category": "PENALTY",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Al-Shehri fouled; penalty awarded.",
+      "linked_event_id": "db50083a-907b-4263-beef-a07ac5b82161"
+    },
+    {
+      "key": "bel-mar-ziyech",
+      "match_id": 3857283,
+      "period": 1,
+      "minute": null,
+      "category": "GOAL_REVIEW",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Ziyech goal disallowed: offside."
+    },
+    {
+      "key": "esp-ger-rudiger",
+      "match_id": 3857263,
+      "period": 1,
+      "minute": 39,
+      "category": "GOAL_REVIEW",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Rudiger goal disallowed: offside."
+    },
+    {
+      "key": "cmr-srb-aboubakar",
+      "match_id": 3857259,
+      "period": 2,
+      "minute": null,
+      "category": "GOAL",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Aboubakar goal restored: onside.",
+      "linked_event_id": "4768edb7-18f4-45fc-8281-4bb29e43dcfd"
+    },
+    {
+      "key": "bra-sui-vinicius",
+      "match_id": 3857269,
+      "period": 2,
+      "minute": 64,
+      "category": "GOAL_REVIEW",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Vinicius goal disallowed: offside."
+    },
+    {
+      "key": "por-uru-handball",
+      "match_id": 3857270,
+      "period": 2,
+      "minute": null,
+      "category": "PENALTY",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Gimenez handball; penalty awarded.",
+      "linked_event_id": "09a6971a-da8c-48d3-a477-04deeca2fa0b"
+    },
+    {
+      "key": "ned-qat-berghuis",
+      "match_id": 3857294,
+      "period": 2,
+      "minute": 68,
+      "category": "GOAL_REVIEW",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Berghuis goal disallowed: handball."
+    },
+    {
+      "key": "pol-arg-messi",
+      "match_id": 3857264,
+      "period": 1,
+      "minute": null,
+      "category": "PENALTY",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Messi fouled; penalty awarded.",
+      "linked_event_id": "bbf37035-eac8-4277-8e3a-39c6acf669e1"
+    },
+    {
+      "key": "crc-ger-fullkrug",
+      "match_id": 3857292,
+      "period": 2,
+      "minute": null,
+      "category": "GOAL",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Fullkrug goal restored: onside.",
+      "linked_event_id": "6c6e16bb-f504-4982-a836-0ad9fc0104a6"
+    },
+    {
+      "key": "gha-uru-kudus",
+      "match_id": 3857293,
+      "period": 1,
+      "minute": null,
+      "category": "PENALTY",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Kudus fouled; penalty awarded.",
+      "linked_event_id": "df394e83-9c10-4bf0-a601-ae219d001867"
+    },
+    {
+      "key": "gha-uru-nunez",
+      "match_id": 3857293,
+      "period": 2,
+      "minute": 58,
+      "category": "PENALTY_REVIEW",
+      "outcome": "UPHELD",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Nunez claim: no penalty."
+    },
+    {
+      "key": "fra-pol-handball",
+      "match_id": 3869152,
+      "period": 2,
+      "minute": null,
+      "category": "PENALTY",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "VAR intervention",
+      "summary": "Upamecano handball; penalty awarded.",
+      "linked_event_id": "36c25c99-7fd8-41f4-9467-18c23d474d37"
+    },
+    {
+      "key": "fra-pol-retake",
+      "match_id": 3869152,
+      "period": 2,
+      "minute": null,
+      "category": "PENALTY_REVIEW",
+      "outcome": "OVERTURNED",
+      "source": "https://www.espn.com/soccer/story/_/id/37634070/var-review-every-decision-world-cup-analysed",
+      "context": "France-Poland: retake",
+      "summary": "Lloris encroachment; penalty retaken."
+    }
+  ]
+}

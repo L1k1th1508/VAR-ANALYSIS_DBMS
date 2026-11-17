@@ -8,7 +8,12 @@ from var_analytics.db import engine_for
 from var_analytics.extract import extract
 from var_analytics.load import load_snapshot
 from var_analytics.migrate import migrate, refresh
-from var_analytics.supplements import extract_evidence, import_evidence, import_premier_added_time
+from var_analytics.supplements import (
+    extract_evidence,
+    import_evidence,
+    import_premier_added_time,
+    import_world_cup_var,
+)
 
 
 def main() -> None:
@@ -20,6 +25,7 @@ def main() -> None:
             "refresh",
             "import-demo",
             "import-evidence",
+            "import-world-cup-var",
             "import-premier-league",
             "import-premier-added-time",
         ],
@@ -60,6 +66,13 @@ def main() -> None:
         result = import_premier_added_time(
             engine_for(os.environ[f"{prefix}ADMIN_DATABASE_URL"]),
             extract_evidence(Path("data/supplements/premier_league_2015_added_time.json")),
+        )
+        refresh(os.environ[f"{prefix}OWNER_DATABASE_URL"])
+        print(result)
+    elif args.command == "import-world-cup-var":
+        result = import_world_cup_var(
+            engine_for(os.environ[f"{prefix}ADMIN_DATABASE_URL"]),
+            extract_evidence(Path("data/supplements/world_cup_2022_var_completion.json")),
         )
         refresh(os.environ[f"{prefix}OWNER_DATABASE_URL"])
         print(result)

@@ -143,6 +143,16 @@ def test_premier_coexists_with_world_cup(snapshot, premier_snapshot, import_db, 
     assert not app.exception and not app.error
     assert app.metric[0].value == "380"
     assert "2015/2016" in app.selectbox[1].options and "2022" not in app.selectbox[1].options
+    assert app.session_state["scope"].season_id == identity("season", "2/27")
+    app.selectbox[0].select(identity("league", 43)).run(timeout=30)
+    assert not app.exception and not app.error
+    assert app.selectbox[1].options == ["2022"] and app.selectbox[1].disabled
+    assert app.session_state["scope"].season_id == identity("season", "43/106")
+    assert app.metric[0].value == "3"
+    app.selectbox[0].select(identity("league", 2)).run(timeout=30)
+    assert app.selectbox[1].options == ["2015/2016"]
+    assert app.session_state["scope"].season_id == identity("season", "2/27")
+    assert app.metric[0].value == "380"
     for name in ("var", "added_time"):
         page = AppTest.from_string(f"from var_analytics.ui.pages import {name}\n{name}()")
         page.session_state["scope"] = scope

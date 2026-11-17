@@ -55,10 +55,20 @@ The ETL tests run only against `var_analytics_test`; their cleanup explicitly as
 
 ## Remaining limits
 
-- The supplement covers selected cases only: six matches with VAR evidence and seven with announcements. VAR/AVAR appointments and measured review durations remain unavailable. No tournament-wide VAR rate or complete added-time coverage is claimed.
+- The completed VAR set covers the 27 reported interventions across 23 World Cup matches; routine checks are not catalogued. Added-time evidence remains selected coverage across seven World Cup matches. VAR/AVAR appointments and measured review durations remain unavailable. No decision-accuracy rate or complete added-time coverage is claimed.
 - Data Management previews/imports/add/edit/confirmed-delete workflows are implemented; see the 17 November checkpoint and [usage guide](data_management.md).
 - Docker PostgreSQL services are running. The application currently runs from the local Python 3.11 environment; the application image and a fresh full Compose deployment have not been validated.
 - Browser visual review remains pending: the browser access host was unavailable and Windows computer use was not approved to access Brave. Automated page execution does not establish desktop/mobile appearance or keyboard usability.
 - The importers are scoped to the documented World Cup 2022 snapshot and cited supplement. Exact supplemental match/event reconciliation is tested. Failed/pending identical batches require review; automated retry/recovery and general multi-provider reconciliation are not implemented.
 
 Source files and secrets stay local. GitHub contains the implementation, schema, tests, attribution logo and reproducible download/import instructions.
+
+## League seasons and World Cup VAR completion — 17 November 2026
+
+- `uv run --frozen python -m pytest tests/test_supplements.py tests/test_etl.py::test_premier_coexists_with_world_cup -q --tb=short`: **12 passed in 665.17s**. Includes separate-test-database imports, exact reconciliation, all 27 outcomes, retained original provenance, unchanged penalty-shot counts, repeat-import prevention, rollback, missing timing, date filters and World Cup → Premier League → World Cup season selection.
+- Season choices are restricted to the selected league. Changing leagues resets the season widget; FIFA World Cup has only 2022. Existing Premier League seasons and their coverage notices are retained.
+- Added 21 brief cited annotations, reconciled with pinned provider match/event identities. The successful local import is batch 6: ten reviewed claims and 21 VAR rows. The original six reviews retain their evidence records. No schema migration, valid penalty shot, card, match or season is added or removed by this supplement.
+- Repeating `import-world-cup-var` returned `already_loaded` for batch 6. A fresh HTTP health request after restarting the dashboard returned `ok`.
+- World Cup totals after import: 64 matches, 32 teams, 29 named referees, 1,966 decisions, 228 cards, 27 interventions across 23 matches and 15 announced-time records. Interventions comprise 25 overturns and two retained decisions; the France–Poland award and retake are distinct. Unknown video-official identities and review durations remain null.
+- `uv run --frozen python scripts/verify_demo.py --with-world-cup-var --with-premier-added-time`: passed HTTP health, World Cup counts/outcomes, league/season controls, Premier League 2015/16 counts and announcement averages, and all eight page executions. The native dashboard was restarted from this project's virtual environment on port 8501. This is automated page execution, not a browser visual inspection.
+- `uv run --frozen ruff check .` and `uv run --frozen ruff format --check .`: passed (44 Python files). Documentation links and Markdown code fences passed validation.

@@ -16,6 +16,9 @@ def main():
     parser.add_argument("--port", type=int, default=8501, help="local Streamlit port (default: 8501)")
     parser.add_argument("--with-premier-league", action="store_true")
     parser.add_argument(
+        "--with-world-cup-var", action="store_true", help="verify all 27 cited World Cup interventions"
+    )
+    parser.add_argument(
         "--with-premier-added-time",
         action="store_true",
         help="verify the Premier League season and its announced-time supplement",
@@ -33,8 +36,14 @@ def main():
     world_cup = Scope(league_id=identity("league", 43), season_id=identity("season", "43/106"))
     totals = service.totals(world_cup)
     assert int(totals.matches) == 64 and int(totals.teams) == 32
-    assert int(totals.decisions) == 1956 and int(totals.referees) == 29
-    assert int(totals.reviews) == 6
+    assert int(totals.decisions) == (1966 if args.with_world_cup_var else 1956)
+    assert int(totals.referees) == 29
+    assert int(totals.reviews) == (27 if args.with_world_cup_var else 6)
+    if args.with_world_cup_var:
+        assert service.reviews(world_cup).outcome_code.value_counts().to_dict() == {
+            "OVERTURNED": 25,
+            "UPHELD": 2,
+        }
     assert len(service.added_time_records(world_cup)) == 15
     assert int(service.teams(world_cup).cards.sum()) == 228
     if check_premier_league:
@@ -53,6 +62,10 @@ def main():
     root_app = AppTest.from_file(str(root / "app.py")).run(timeout=30)
     assert not root_app.exception and not root_app.error
     assert root_app.metric[0].value == str(int(service.totals(Scope()).matches))
+    root_app.selectbox[0].select(identity("league", 43)).run(timeout=30)
+    assert not root_app.exception and not root_app.error
+    assert root_app.selectbox[1].options == ["2022"]
+    assert root_app.metric[0].value == "64"
     if check_premier_league:
         root_app.selectbox[0].select(identity("league", 2)).run(timeout=30)
         assert not root_app.exception and not root_app.error

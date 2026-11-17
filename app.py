@@ -31,12 +31,20 @@ with st.sidebar:
         catalog = AnalyticsService().catalog(Scope())
         league_names = dict(zip(catalog.league_id, catalog.league))
         league = st.selectbox(
-            "League", [None, *league_names], format_func=lambda k: league_names.get(k, "All leagues")
+            "League",
+            [None, *league_names],
+            format_func=lambda k: league_names.get(k, "All leagues"),
+            key="league_filter",
         )
         seasons = catalog if league is None else catalog[catalog.league_id == league]
         season_names = dict(zip(seasons.season_id, seasons.season))
         season = st.selectbox(
-            "Season", [None, *season_names], format_func=lambda k: season_names.get(k, "All seasons")
+            "Season",
+            list(season_names) if league is not None else [None, *season_names],
+            format_func=lambda k: season_names.get(k, "All seasons"),
+            # A league change creates a fresh selection, never a stale season from another league.
+            key=f"season_filter_{league}",
+            disabled=league is not None and len(season_names) == 1,
         )
         dates = st.date_input("Date range", value=())
         st.session_state["scope"] = Scope(
