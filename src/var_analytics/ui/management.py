@@ -18,6 +18,17 @@ CHOICES = {
 }
 
 
+def display_ids(frame):
+    """Render PostgreSQL UUID values as plain text in Streamlit tables."""
+    visible = frame.copy()
+    for column in visible.columns:
+        if visible[column].map(lambda value: isinstance(value, UUID)).any():
+            visible[column] = visible[column].map(
+                lambda value: str(value) if isinstance(value, UUID) else value
+            )
+    return visible
+
+
 def announce(result):
     if result["status"] == "already_loaded":
         st.success(f"Already imported. No duplicate records added. Batch {result['batch_id']}.")
@@ -95,7 +106,7 @@ def references(service, entity):
             frame = service.browse(selected, search).drop(columns="source_record_id", errors="ignore")
         else:
             frame = service.reference_rows(selected)
-        st.dataframe(frame, hide_index=True, width="stretch")
+        st.dataframe(display_ids(frame), hide_index=True, width="stretch")
         st.caption(
             "Showing up to 200 records. Copy the required ID into the form or CSV. "
             "Create missing related records first."
@@ -202,7 +213,7 @@ def render(session):
         else:
             search = st.text_input("Search records by name or ID", key=f"search_{entity}")
             frame = service.browse(entity, search)
-            st.dataframe(frame, hide_index=True, width="stretch")
+            st.dataframe(display_ids(frame), hide_index=True, width="stretch")
             st.caption("Up to 200 records, ordered by record key. Search to narrow the list.")
             if frame.empty:
                 st.info("No records found. Change the search or add a verified record.")
