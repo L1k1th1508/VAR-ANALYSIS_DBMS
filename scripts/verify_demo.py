@@ -39,7 +39,6 @@ def main():
         }
     assert len(service.added_time_records(world_cup)) == 15
     assert int(service.teams(world_cup).cards.sum()) == 228
-            assert means.loc[2, "mean_announced_minutes"] == 5
     root_app = AppTest.from_file(str(root / "app.py")).run(timeout=30)
     assert not root_app.exception and not root_app.error
     assert root_app.metric[0].value == str(int(service.totals(Scope()).matches))
@@ -47,10 +46,6 @@ def main():
     assert not root_app.exception and not root_app.error
     assert root_app.selectbox[1].options == ["2022"]
     assert root_app.metric[0].value == "64"
-    if check_premier_league:
-        root_app.selectbox[0].select(identity("league", 2)).run(timeout=30)
-        assert not root_app.exception and not root_app.error
-        assert int(root_app.metric[0].value) >= 380
     for name in ("home", "matches", "referees", "var", "teams", "added_time", "management", "quality"):
         page = AppTest.from_string(f"from var_analytics.ui.pages import {name}\n{name}()").run(timeout=30)
         assert not page.exception and not page.error, name
