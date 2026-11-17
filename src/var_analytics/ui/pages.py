@@ -361,11 +361,15 @@ def management(service, scope):
     if st.button("Sign out"):
         st.session_state.pop("admin_session", None)
         st.rerun()
-    st.info(
-        "The local StatsBomb demo is loaded through the validated import command. "
-        "Additional provider uploads and manual edits are not available yet."
-    )
-    st.write("Import history and validation results are available on Data Quality and Methodology.")
+    from var_analytics.ui.management import render
+
+    try:
+        render(session)
+    except PermissionError as exc:
+        st.session_state.pop("admin_session", None)
+        st.error(str(exc))
+    except ValueError as exc:
+        st.error(str(exc))
 
 
 @page("Data Quality and Methodology")

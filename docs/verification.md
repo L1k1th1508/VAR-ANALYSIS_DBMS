@@ -1,5 +1,17 @@
 # Verification checkpoint — 15 November 2026
 
+## Data Management — 17 November 2026
+
+- Implemented `admin_service.py` and native Streamlit management forms for 15 operational record types. No schema migration or production record mutation was required to enable the feature.
+- Administrator capability/expiry and the PostgreSQL `app_admin` role are checked independently. Lookup vocabularies, metadata, permissions and owner maintenance are outside the editor's table allowlist.
+- CSV previews use Pandas/Pydantic, UTF-8 parsing, a 2,000,000-byte/500-row limit, exact columns, typed fields and duplicate-key checks. Imports insert new records atomically; conflicts do not silently overwrite provider data.
+- Manual additions/edits/deletions retain citation, reason, submitted fields, before-image and session ID in immutable raw evidence. Failed saves preserve rejected evidence while rolling back domain changes. Deletions require exact-row confirmation, optimistic edit checks and database FK permission; there is no cascade-delete control.
+- `python -m pytest tests/test_admin.py -q --tb=short`: **14 passed in 43.06s**. Covers direct API authorization, wrong database role, CRUD/audit preservation, stale edits, duplicate prevention, malformed CSV, rollback, FK protection, clock ranges and expired sessions.
+- `python -m pytest tests/test_admin.py tests/test_ui.py -q --tb=short`: **24 passed in 53.29s** at the UI checkpoint, including authenticated form creation, search, disabled delete controls, CSV upload-widget presence, sign-in/out and all eight empty pages.
+- Read-only authenticated AppTest smoke against the running local database: all **15 record types** rendered Browse/Edit and Add forms; CSV controls rendered. No Save/Import/Delete actions were submitted against demo data. Referee materialized-summary refresh remains owner maintenance.
+- Browser appearance and OS file-dialog interaction remain outside AppTest coverage. CSV parsing/import and atomic rejection are tested directly at the service boundary.
+- Final `python -m pytest -q --tb=short`: **69 passed in 299.77s**. `ruff check .` and `ruff format --check .` passed. Production mutation buttons were not submitted during verification.
+
 ## Premier League 2015/16 announcements — 16 November 2026
 
 - User-selected scope: announcements for the existing historical season; VAR remains not applicable.
@@ -34,7 +46,7 @@ The ETL tests run only against `var_analytics_test`; their cleanup explicitly as
 ## Remaining limits
 
 - The supplement covers selected cases only: six matches with VAR evidence and seven with announcements. VAR/AVAR appointments and measured review durations remain unavailable. No tournament-wide VAR rate or complete added-time coverage is claimed.
-- Data Management login exists; protected CSV previews/uploads and manual edits remain pending.
+- Data Management previews/imports/add/edit/confirmed-delete workflows are implemented; see the 17 November checkpoint and [usage guide](data_management.md).
 - Docker PostgreSQL services are running. The application currently runs from the local Python 3.11 environment; the application image and a fresh full Compose deployment have not been validated.
 - Browser visual review remains pending: the browser access host was unavailable and Windows computer use was not approved to access Brave. Automated page execution does not establish desktop/mobile appearance or keyboard usability.
 - The importers are scoped to the documented World Cup 2022 snapshot and cited supplement. Exact supplemental match/event reconciliation is tested. Failed/pending identical batches require review; automated retry/recovery and general multi-provider reconciliation are not implemented.

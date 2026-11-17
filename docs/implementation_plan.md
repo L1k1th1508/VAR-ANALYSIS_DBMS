@@ -78,7 +78,7 @@ Proposed module boundaries preserve the blueprint's named modules:
 | `data/demo/` | Only permitted, attributed source snapshots and a manifest |
 | `docs/` | ERD, schema, coverage, metrics, operations and demonstration guide |
 
-These directories describe the approved architecture; implemented modules follow this layout. The protected management service and CSV workflow remain pending.
+These directories describe the approved architecture; implemented modules follow this layout. The protected management service and CSV preview/import/edit/delete workflows are implemented; see [the usage guide](data_management.md).
 
 ## ETL and provenance lifecycle
 
