@@ -223,9 +223,9 @@ export default function Home() {
                 <thead className="bg-slate-100 text-slate-700 uppercase text-xs">
                   <tr>
                     <th className="py-3 px-4">Date</th>
-                    <th className="py-3 px-4">Home Team</th>
+                    <th className="py-3 px-4">Team A</th>
                     <th className="py-3 px-4">Score</th>
-                    <th className="py-3 px-4">Away Team</th>
+                    <th className="py-3 px-4">Team B</th>
                     <th className="py-3 px-4">Main Referee</th>
                   </tr>
                 </thead>
@@ -233,11 +233,11 @@ export default function Home() {
                   {matches.map((m, idx) => (
                     <tr key={idx} className="hover:bg-slate-50">
                       <td className="py-3 px-4 font-mono text-xs">{m.match_date}</td>
-                      <td className="py-3 px-4 font-medium">{m.home_team}</td>
+                      <td className="py-3 px-4 font-medium">{m.team_a}</td>
                       <td className="py-3 px-4 font-bold text-sky-700">
                         {m.home_score} : {m.away_score}
                       </td>
-                      <td className="py-3 px-4 font-medium">{m.away_team}</td>
+                      <td className="py-3 px-4 font-medium">{m.team_b}</td>
                       <td className="py-3 px-4 text-slate-600">{m.main_referee || "Official"}</td>
                     </tr>
                   ))}
