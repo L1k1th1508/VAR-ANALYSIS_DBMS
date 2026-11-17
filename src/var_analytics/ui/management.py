@@ -1,6 +1,7 @@
 """Native Streamlit record maintenance with previews and explicit save controls."""
 
 import hashlib
+from pathlib import Path
 from uuid import UUID, uuid4
 
 import pandas as pd
@@ -105,7 +106,10 @@ def render(session):
     service = AdminService(session)
     entity = st.selectbox("Manage records", list(ENTITIES), format_func=ENTITIES.get, key="manage_entity")
     action = st.radio(
-        "Action", ["Browse and edit", "Add a record", "Import CSV"], horizontal=True, key="manage_action"
+        "Action",
+        ["Browse and edit", "Add a record", "Import CSV", "Export CSV"],
+        horizontal=True,
+        key="manage_action",
     )
     st.caption(
         "Management covers all competitions. Enter verified facts and leave unknown values blank. "
@@ -113,7 +117,28 @@ def render(session):
     )
     references(service, entity)
     try:
-        if action == "Import CSV":
+        if action == "Export CSV":
+            st.subheader("Export records to CSV")
+            search = st.text_input("Filter export by name or ID", key=f"export_search_{entity}")
+            result = service.export_csv(entity, search)
+            st.write(f"{len(result.rows):,} matching records")
+            st.dataframe(pd.DataFrame(serial(result.rows)).head(20), hide_index=True, width="stretch")
+            st.caption(
+                "Preview shows up to 20 rows; the download includes every matching row, up to 20,000. "
+                "Blank fields stay unknown. Private import metadata and credentials are excluded."
+            )
+            st.download_button(
+                "Download records CSV",
+                result.content,
+                file_name=f"{entity}_records.csv",
+                mime="text/csv",
+                key=f"export_download_{entity}",
+            )
+            st.caption(
+                "Existing record IDs are preserved. Re-importing existing IDs is blocked; use Browse and edit "
+                "for corrections. Larger exports must be split into 500-row files before any new-record import."
+            )
+        elif action == "Import CSV":
             st.subheader("Preview a CSV before importing")
             st.download_button(
                 "Download CSV template",
@@ -121,6 +146,20 @@ def render(session):
                 file_name=f"{entity}_template.csv",
                 mime="text/csv",
             )
+            if entity == "added_time":
+                example = Path(__file__).resolve().parents[3] / "data/demo/verified_added_time_import.csv"
+                if example.exists():
+                    st.download_button(
+                        "Download verified evaluation CSV",
+                        example.read_bytes(),
+                        file_name="verified_added_time_import.csv",
+                        mime="text/csv",
+                    )
+                    st.markdown(
+                        "Example: Liverpool–Arsenal, 13 January 2016, second half: three announced minutes. "
+                        "[Source: live coverage, 90+1 entry](https://www.theguardian.com/football/live/2016/jan/13/liverpool-v-arsenal-premier-league-live). "
+                        "Requires the loaded 2015/16 Premier League season; importing an existing period is blocked."
+                    )
             st.caption(
                 "UTF-8 CSV, at most 2 MB / 500 rows. Blank means unknown. UUID primary IDs can be blank "
                 "for new records; relationship IDs must refer to existing records. Imports add records; "

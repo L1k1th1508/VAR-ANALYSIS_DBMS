@@ -14,7 +14,7 @@ The setup below downloads real World Cup 2022 data into your own local database.
 | VAR Analytics | Selected review outcomes, categories and source reports |
 | Team Analytics | Recorded team involvement, cards and penalty shots |
 | Added Time Analytics | Announced minutes by period and match, with citations |
-| Data Management | Administrator sign-in, CSV previews/imports, record forms, edits and confirmed deletions |
+| Data Management | Administrator sign-in, CSV previews/imports/exports, record forms, edits and confirmed deletions |
 | Data Quality and Methodology | Import history, validation, coverage and limitations |
 
 The demo has **64 matches, 32 teams, 29 named referees, 1,956 decision rows and 228 event-tagged cards**. Decision rows comprise 1,953 provider events and three additional reviewed claims. A cited supplement adds **six selected VAR reviews and 15 announced-time records across seven matches**. VAR/added-time coverage is partial. Review durations and VAR/AVAR appointments remain unavailable; no synthetic football data is used.
@@ -139,7 +139,7 @@ uv run --frozen ruff format --check .
 
 Complete step 4 first: supplement tests also need `demo_manifest.json`. Tests use `var_analytics_test` on port 55433 and guard destructive cleanup against the application database. The test database uses temporary storage; rerun its migrations after recreating it. Missing credentials or source fixtures can cause skipped tests—check the summary.
 
-The latest checkpoint passed **69 tests**, including authenticated record management and CSV validation, plus read-only checks of all 15 administrator form types on the local database. The Python commands and Compose configuration were checked on Windows; fresh macOS/Linux installations and the application image have not been exercised. See [verification details](docs/verification.md).
+The latest full regression run passed **77 tests**, including authenticated record management, CSV import/export and validation, plus read-only checks of all 15 administrator form/export types on the local database. A cited evaluation CSV is also supplied for an explicit import demonstration. The Python commands and Compose configuration were checked on Windows; fresh macOS/Linux installations and the application image have not been exercised. See [verification details](docs/verification.md).
 
 ## Troubleshooting
 
@@ -200,7 +200,7 @@ See [2015/16 announcement sources](docs/premier_league_sources.md#selected-20151
 
 ## Project documents and remaining work
 
-Data Management is available after administrator sign-in. It supports CSV templates and previews (UTF-8, up to 2 MB / 500 rows), source-backed additions and corrections, reference-ID searches and confirmed deletion of an exact record. Failed imports roll back, and every accepted change retains provenance. See the [step-by-step Data Management guide](docs/data_management.md).
+Data Management is available after administrator sign-in. It supports CSV templates and previews (UTF-8, up to 2 MB / 500 import rows), filtered CSV exports (up to 20,000 rows), source-backed additions and corrections, reference-ID searches and confirmed deletion of an exact record. Failed imports roll back, and every accepted change retains provenance. See the [Data Management guide](docs/data_management.md) and [evaluation walkthrough](docs/evaluation_demo.md).
 
 - [Architecture and milestones](docs/implementation_plan.md)
 - [ER diagram](docs/er_diagram.md) and [relational schema](docs/relational_schema.md)

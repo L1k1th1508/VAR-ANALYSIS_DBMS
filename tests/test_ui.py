@@ -69,3 +69,10 @@ def test_authenticated_page_add_edit_and_confirmation_controls(admin_db, test_ur
     app.radio(key="manage_action").set_value("Import CSV").run(timeout=30)
     assert not app.exception and not app.error
     assert len(app.get("file_uploader")) == 1
+    app.radio(key="manage_action").set_value("Export CSV").run(timeout=30)
+    assert not app.exception and not app.error
+    assert any(b.label == "Download records CSV" for b in app.get("download_button"))
+    app.selectbox(key="manage_entity").select("added_time").run(timeout=30)
+    app.radio(key="manage_action").set_value("Import CSV").run(timeout=30)
+    assert not app.exception and not app.error
+    assert any(b.label == "Download verified evaluation CSV" for b in app.get("download_button"))

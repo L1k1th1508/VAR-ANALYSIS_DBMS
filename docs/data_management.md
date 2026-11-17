@@ -37,6 +37,14 @@ Choose **Browse and edit**, search for the row, and select its exact key under *
 
 If someone else changed the row since it was loaded, the save is rejected. Reload the page/list, review the current record and try again. Every accepted edit attaches a new evidence record; the before-image, submitted fields, original source-record ID, citation, reason and administrator session ID remain in the audit payload. Historical provider evidence is retained.
 
+## Export records
+
+Choose a record type and **Export CSV**. Optionally filter by a name, date text or ID present in that table. For normalized tables such as matches, use the team/match IDs from the reference browser rather than an unrelated display name. The page shows the matching count and a preview of up to 20 records. Select **Download records CSV** to download all matching rows, including rows beyond the 200-record Browse limit.
+
+Exports support up to 20,000 records. If the selection is larger, the app asks you to narrow it and produces no partial file. Empty results produce a header-only CSV. Files use UTF-8 with a BOM for spreadsheet compatibility. UUIDs and operational fields are preserved; unknown values export as blank fields. Private import metadata, raw evidence payloads and credentials are excluded. Text that could become a spreadsheet formula receives an apostrophe prefix in the exported file; stored data is unchanged.
+
+Export is read-only and requires an active administrator session. This is a record-data export, not a full PostgreSQL backup. Existing IDs remain in the file, so importing the same existing rows is deliberately blocked by primary-key checks. Use the editor for corrections. If importing genuinely new records from a larger export, split it into files of at most 500 rows and comply with the 2 MB import limit; do not remove IDs merely to duplicate existing facts.
+
 ## Delete an exact record
 
 Under **Browse and edit**, select the row and expand **Delete the selected record**. Inspect the full row, enter a source URL and deletion reason, check the confirmation box, then select **Delete record**. This confirmation is required for each deletion.
@@ -58,5 +66,7 @@ The web app never requires owner credentials to edit records and cannot refresh 
 ## Implementation and testing boundaries
 
 `admin_service.py` implements the allowlisted table access, Pandas/Pydantic CSV preview, source preservation, session/role checks, optimistic edit checks and transactional mutations. `ui/management.py` provides the native Streamlit controls. The existing PostgreSQL schema/grants are sufficient; no migration or production-data deletion is needed to enable the feature.
+
+For a compact evaluation walkthrough, see [the demonstration checklist](evaluation_demo.md).
 
 Automated mutation tests use only the explicitly guarded `var_analytics_test` database and source-backed test copies. The application demo is checked read-only. Browser appearance and file-selection interaction require a separate visual review; automated CSV parsing and import behavior are tested at the service boundary.

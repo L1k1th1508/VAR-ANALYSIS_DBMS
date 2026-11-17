@@ -72,6 +72,30 @@ def test_premier_requires_explicit_supported_scope(premier_snapshot):
         extract(folder, expected_scope=(2, 44))
 
 
+def test_evaluation_csv_targets_the_verified_historical_match(premier_snapshot):
+    import csv
+    from uuid import UUID
+
+    path = ROOT / "data/demo/verified_added_time_import.csv"
+    with path.open(encoding="utf-8", newline="") as source:
+        rows = list(csv.DictReader(source))
+    assert len(rows) == 1
+    assert UUID(rows[0]["match_id"]) == identity("match", 3754305)
+    assert rows[0]["period_code"] == "2" and rows[0]["announced_minutes"] == "3"
+    assert rows[0]["announced_seconds"] == ""
+    match = next(
+        o["raw_payload"]
+        for o in premier_snapshot.observations
+        if o["entity_kind"] == "match" and o["raw_payload"]["match_id"] == 3754305
+    )
+    assert match["match_date"] == "2016-01-13"
+    assert (match["home_team"]["home_team_name"], match["away_team"]["away_team_name"]) == (
+        "Liverpool",
+        "Arsenal",
+    )
+    assert (match["home_score"], match["away_score"]) == (3, 3)
+
+
 @pytest.mark.integration
 def test_premier_coexists_with_world_cup(snapshot, premier_snapshot, import_db, test_urls, monkeypatch):
     admin, owner = import_db

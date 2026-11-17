@@ -37,6 +37,16 @@ ENTITIES = {
     "season": "Seasons",
 }
 MAX_BYTES, MAX_ROWS = 2_000_000, 500
+MAX_EXPORT_ROWS = 20_000
+
+
+def spreadsheet_text(value):
+    """Keep untrusted text from becoming a formula when CSV is opened in a spreadsheet."""
+    if isinstance(value, str) and (
+        value.lstrip().startswith(("=", "+", "-", "@")) or value.startswith(("\t", "\r", "\n"))
+    ):
+        return "'" + value
+    return value
 
 
 def serial(value):
@@ -64,6 +74,12 @@ class Preview:
     @property
     def valid(self):
         return bool(self.rows) and self.errors.empty
+
+
+@dataclass
+class Export:
+    rows: list[dict]
+    content: bytes
 
 
 class AdminService:
@@ -94,7 +110,7 @@ class AdminService:
         csv.writer(output).writerow([c.name for c in self.fields(name)])
         return output.getvalue()
 
-    def browse(self, name, search=""):
+    def _selection(self, name, search=""):
         table = self.table(name)
         statement = select(table)
         if search.strip():
@@ -110,9 +126,33 @@ class AdminService:
                     ]
                 )
             )
-        statement = statement.order_by(*table.primary_key).limit(200)
+        return statement.order_by(*table.primary_key)
+
+    def browse(self, name, search=""):
+        statement = self._selection(name, search).limit(200)
         with self.engine.connect() as conn:
             return pd.read_sql_query(statement, conn)
+
+    def export_csv(self, name, search=""):
+        """Export operational fields only; never silently truncate to the browse limit."""
+        fields = [c.name for c in self.fields(name)]
+        with self.engine.connect() as conn:
+            rows = [
+                dict(row)
+                for row in conn.execute(self._selection(name, search).limit(MAX_EXPORT_ROWS + 1)).mappings()
+            ]
+        if len(rows) > MAX_EXPORT_ROWS:
+            raise ValueError(
+                "More than 20,000 records match. Narrow the search before exporting; no partial file was produced."
+            )
+        self._authorize()
+        exported = [{k: row[k] for k in fields} for row in rows]
+        output = io.StringIO(newline="")
+        writer = csv.DictWriter(output, fieldnames=fields, lineterminator="\n")
+        writer.writeheader()
+        for row in exported:
+            writer.writerow({k: "" if v is None else spreadsheet_text(v) for k, v in row.items()})
+        return Export(exported, output.getvalue().encode("utf-8-sig"))
 
     def references(self, name):
         table = self.table(name)

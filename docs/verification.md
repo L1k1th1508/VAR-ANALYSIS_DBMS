@@ -1,5 +1,15 @@
 # Verification checkpoint — 15 November 2026
 
+## CSV export and active dashboard — 17 November 2026
+
+- Added authenticated CSV export for all 15 operational record types, with search filters, total counts, a 20-row preview and complete downloads up to 20,000 rows. Larger results fail explicitly rather than truncating to the Browse limit. UUIDs are retained, unknowns stay blank and private import metadata is excluded. Spreadsheet-formula text is escaped only in the output file.
+- `python -m pytest tests/test_admin.py tests/test_ui.py -q --tb=short --maxfail=2`: **32 passed in 64.05s**. New tests cover formula handling, complete export beyond the 200-row Browse limit, filtering, CSV field/NULL preservation, authorization and explicit oversized-result rejection. The authenticated UI test checks the download control.
+- Restarted the verified older Streamlit process on port 8501 using the Desktop project's virtual environment and an absolute app entry path. The prior browser screenshot showed its cached login-only page. The updated health endpoint returned `ok`.
+- Read-only local authenticated checks passed for all four actions (Import CSV, Add a record, Browse and edit, Export CSV). All 15 exports succeeded, including 446 matches and 16,922 roster rows. No production mutation actions were submitted, and no provider data export files were committed.
+- Added [an evaluation walkthrough](evaluation_demo.md) for CSV import/export, CRUD, validation, RBAC and provenance. Browser appearance and OS download/file-dialog behavior remain outside AppTest verification.
+- Full regression command `python -m pytest -q --tb=short`: **77 passed in 286.96s**. A subsequent one-row, cited evaluation CSV was added without importing it into the application data; its historical match identity and new download control receive a separate targeted follow-up check.
+- Final follow-up `python -m pytest tests/test_etl.py::test_evaluation_csv_targets_the_verified_historical_match tests/test_ui.py -q --tb=short`: **11 passed in 97.49s**. Verifies the evaluation row against the checksummed 2015/16 match fixture and its authenticated download control. Lint and formatting checks passed.
+
 ## Data Management — 17 November 2026
 
 - Implemented `admin_service.py` and native Streamlit management forms for 15 operational record types. No schema migration or production record mutation was required to enable the feature.

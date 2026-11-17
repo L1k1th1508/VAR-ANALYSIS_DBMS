@@ -1,5 +1,7 @@
 """Administrator maintenance tests; source-backed copies only in the disposable database."""
 
+import csv
+import io
 from dataclasses import replace
 from pathlib import Path
 from uuid import uuid4
@@ -8,7 +10,7 @@ import pytest
 from argon2 import PasswordHasher
 from sqlalchemy import text
 
-from var_analytics.admin_service import AdminService
+from var_analytics.admin_service import AdminService, spreadsheet_text
 from var_analytics.auth import AdminSession, authenticate
 from var_analytics.db import engine_for
 from var_analytics.extract import extract
@@ -190,3 +192,47 @@ def test_clock_validation_and_expired_session_on_existing_service(admin_db):
     service.session = replace(service.session, issued_at=service.session.issued_at - 3600)
     with pytest.raises(PermissionError):
         service.preview_csv("country", b"name\nFrance\n")
+    with pytest.raises(PermissionError):
+        service.export_csv("country")
+
+
+@pytest.mark.parametrize("value", ["=1+1", "+command", "-command", "@SUM(A1)", "  =1+1", "\ttext"])
+def test_export_text_cannot_become_a_spreadsheet_formula(value):
+    assert spreadsheet_text(value) == "'" + value
+    assert spreadsheet_text("France") == "France"
+    assert spreadsheet_text(None) is None
+
+
+@pytest.mark.integration
+def test_csv_export_is_complete_typed_and_filterable(admin_db):
+    service, owner = admin_db
+    before = service.export_csv("country")
+    # Source-backed country copies exercise the browse/export boundary only in the disposable DB.
+    service.import_csv("country", b"name\n" + b"France\n" * 201, CITATION, REASON)
+    result = service.export_csv("country")
+    assert len(service.browse("country")) == 200
+    assert len(result.rows) == len(before.rows) + 201
+    assert result.content.startswith(b"\xef\xbb\xbf")
+    parsed = list(csv.DictReader(io.StringIO(result.content.decode("utf-8-sig"))))
+    assert len(parsed) == len(result.rows)
+    assert "source_record_id" not in parsed[0]
+    assert all(row["country_id"] for row in parsed)
+    preview = service.preview_csv("country", result.content)
+    assert preview.valid and len(preview.rows) == len(parsed)
+    filtered = service.export_csv("country", str(result.rows[0]["country_id"]))
+    assert len(filtered.rows) == 1
+    assert service.export_csv("country", "'; DROP TABLE var.country; --").rows == []
+    with pytest.raises(ValueError, match="not available"):
+        service.export_csv("data_source")
+    with owner.connect() as conn:
+        assert conn.scalar(text("SELECT count(*) FROM var.country")) == len(parsed)
+
+
+@pytest.mark.integration
+def test_export_rejects_oversized_result_without_silent_truncation(admin_db, monkeypatch):
+    from var_analytics import admin_service
+
+    service, _ = admin_db
+    monkeypatch.setattr(admin_service, "MAX_EXPORT_ROWS", 1)
+    with pytest.raises(ValueError, match="Narrow the search"):
+        service.export_csv("country")
