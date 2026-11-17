@@ -1,4 +1,4 @@
-import { pgPool } from "@/lib/db";
+import { pgPool } from "../../lib/db";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {

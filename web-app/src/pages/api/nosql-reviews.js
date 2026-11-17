@@ -1,4 +1,4 @@
-import { getMongoDb } from "@/lib/db";
+import { getMongoDb } from "../../lib/db";
 
 export default async function handler(req, res) {
   const { method } = req;

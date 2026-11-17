@@ -9,6 +9,10 @@ from var_analytics.analytics_service import AnalyticsService, Scope, rate
 from var_analytics.auth import authenticate, require_admin
 from var_analytics.transform_validate import identity
 
+COLORS = ["#236FA1", "#236B5B", "#9A5A00", "#B23A48", "#79589F", "#536774"]
+PERIODS = {1: "First half", 2: "Second half", 3: "Extra time: first half", 4: "Extra time: second half"}
+
+
 def page(title):
     def decorate(fn):
         @wraps(fn)
