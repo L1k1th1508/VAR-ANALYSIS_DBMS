@@ -82,8 +82,20 @@ def home(service, scope):
     st.caption("Counts describe stored records. No recorded VAR reviews does not mean no reviews occurred.")
     catalog = service.catalog(scope)
     if not empty(catalog):
-        counts = catalog.groupby(["league", "season"], dropna=False).size().reset_index(name="matches")
-        chart(counts, "season", "matches", "Matches in the selected scope", color="league")
+        counts = (
+            catalog.groupby("match_date", dropna=False)
+            .size()
+            .reset_index(name="matches")
+            .sort_values("match_date")
+        )
+        counts["day"] = counts["match_date"].astype(str)
+        chart(
+            counts,
+            "day",
+            "matches",
+            "Matches played by match day",
+            labels={"day": "Match Day", "matches": "Matches"},
+        )
         show_table(
             catalog[["match_date", "home_team", "away_team", "home_score", "away_score", "main_referee"]]
         )
