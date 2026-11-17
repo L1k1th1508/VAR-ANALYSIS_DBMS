@@ -13,11 +13,8 @@ ROOT = Path(__file__).resolve().parents[1] / "data/raw/statsbomb"
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Download a pinned source-backed demonstration season")
-    parser.add_argument("--dataset", choices=["world-cup", "premier-league"], default="world-cup")
-    args = parser.parse_args()
-    competition, season = (2, 27) if args.dataset == "premier-league" else (43, 106)
-    target_root = ROOT if competition == 43 else ROOT.parent / "statsbomb-premier-league"
+    competition, season = (43, 106)
+    target_root = ROOT
     target_root.mkdir(parents=True, exist_ok=True)
     with httpx.Client(timeout=90, follow_redirects=True, transport=httpx.HTTPTransport(retries=3)) as client:
 
@@ -34,7 +31,7 @@ def main():
         path, info = fetch(f"data/matches/{competition}/{season}.json")
         files = {path: info}
         matches = json.loads((target_root / path).read_bytes())
-        if len(matches) != (380 if competition == 2 else 64):
+        if len(matches) != 64:
             raise ValueError("Unexpected pinned season match count")
         paths = [f"data/{kind}/{m['match_id']}.json" for m in matches for kind in ("events", "lineups")]
         paths += ["README.md", "LICENSE.pdf"]

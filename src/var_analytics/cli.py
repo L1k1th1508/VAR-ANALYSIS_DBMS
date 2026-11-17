@@ -11,7 +11,6 @@ from var_analytics.migrate import migrate, refresh
 from var_analytics.supplements import (
     extract_evidence,
     import_evidence,
-    import_premier_added_time,
     import_world_cup_var,
 )
 
@@ -26,8 +25,6 @@ def main() -> None:
             "import-demo",
             "import-evidence",
             "import-world-cup-var",
-            "import-premier-league",
-            "import-premier-added-time",
         ],
     )
     parser.add_argument(
@@ -43,29 +40,18 @@ def main() -> None:
     elif args.command == "refresh":
         refresh(os.environ[f"{prefix}OWNER_DATABASE_URL"])
         print("Referee summary refreshed.")
-    elif args.command in {"import-demo", "import-premier-league"}:
-        premier = args.command == "import-premier-league"
-        folder = args.source_dir or Path(
-            "data/raw/statsbomb-premier-league" if premier else "data/raw/statsbomb"
-        )
-        snapshot = extract(folder, expected_scope=(2, 27) if premier else (43, 106))
+    elif args.command == "import-demo":
+        folder = args.source_dir or Path("data/raw/statsbomb")
+        snapshot = extract(folder, expected_scope=(43, 106))
         result = load_snapshot(
             engine_for(os.environ[f"{prefix}ADMIN_DATABASE_URL"]),
             snapshot,
-            transform_version="statsbomb-premierleague2015-v1" if premier else None,
         )
         refresh(os.environ[f"{prefix}OWNER_DATABASE_URL"])
         print(result)
     elif args.command == "import-evidence":
         result = import_evidence(
             engine_for(os.environ[f"{prefix}ADMIN_DATABASE_URL"]), extract_evidence(args.evidence_file)
-        )
-        refresh(os.environ[f"{prefix}OWNER_DATABASE_URL"])
-        print(result)
-    elif args.command == "import-premier-added-time":
-        result = import_premier_added_time(
-            engine_for(os.environ[f"{prefix}ADMIN_DATABASE_URL"]),
-            extract_evidence(Path("data/supplements/premier_league_2015_added_time.json")),
         )
         refresh(os.environ[f"{prefix}OWNER_DATABASE_URL"])
         print(result)

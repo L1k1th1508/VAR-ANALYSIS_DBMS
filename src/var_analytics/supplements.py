@@ -221,37 +221,6 @@ def import_evidence(engine, snapshot: Snapshot) -> dict:
     )
 
 
-def import_premier_added_time(engine, snapshot: Snapshot) -> dict:
-    """Announcement-only extension for the existing 2015/16 matches."""
-
-    def announcements_only(source):
-        if any(o["entity_kind"] != "added_time" for o in source.observations):
-            raise RecordValidationError(
-                source.observations[0]["record_locator"],
-                "2015/16 accepts announcements only; VAR not applicable",
-            )
-        return transform_evidence(source)
-
-    return load_snapshot(
-        engine,
-        snapshot,
-        transformer=announcements_only,
-        table_order=TABLE_ORDER_ANNOUNCEMENTS,
-        transform_version="cited-premier2015-announcements-v1",
-        preflight=lambda conn, source: reconcile(
-            conn, source, season_key="2/27", source_code="premier2015_announcements"
-        ),
-        source_info=dict(
-            source_code="premier2015_announcements",
-            name="Premier League 2015/16 cited announcements",
-            source_kind="manual",
-            reference_url="https://github.com/L1k1th1508/VAR-ANALYSIS_DBMS/blob/main/docs/premier_league_sources.md",
-            license_reference="Factual annotations with citations; linked articles retain publisher copyright.",
-            attribution_text="Announced-time evidence: Sports Mole live match coverage.",
-        ),
-    )
-
-
 TABLE_ORDER_ANNOUNCEMENTS = ["added_time"]
 
 

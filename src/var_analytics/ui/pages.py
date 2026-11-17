@@ -9,12 +9,6 @@ from var_analytics.analytics_service import AnalyticsService, Scope, rate
 from var_analytics.auth import authenticate, require_admin
 from var_analytics.transform_validate import identity
 
-PREMIER_SAMPLE_SEASON = uuid5(NAMESPACE_URL, "cited-premier2024/season/2024/2025")
-
-COLORS = ["#236FA1", "#236B5B", "#9A5A00", "#B23A48", "#79589F", "#536774"]
-PERIODS = {1: "First half", 2: "Second half", 3: "Extra time: first half", 4: "Extra time: second half"}
-
-
 def page(title):
     def decorate(fn):
         @wraps(fn)
@@ -23,14 +17,6 @@ def page(title):
             try:
                 service = AnalyticsService()
                 scope = st.session_state.get("scope", Scope())
-                catalog = service.catalog(scope)
-                sample = catalog[catalog.season_id == PREMIER_SAMPLE_SEASON]
-                if not sample.empty:
-                    st.info(
-                        f"Premier League 2024/25 is a selected {len(sample)}-match evidence sample, not a full season. "
-                        "It contains cited VAR cases and announcements only. Ordinary events, cards and official "
-                        "appointments are incomplete; absent records do not mean zero activity."
-                    )
                 fn(service, scope)
             except SQLAlchemyError:
                 st.error(
@@ -98,12 +84,12 @@ def home(service, scope):
             catalog[["match_date", "home_team", "away_team", "home_score", "away_score", "main_referee"]]
         )
     st.caption(
-        "Local datasets: StatsBomb World Cup 2022 and Premier League 2015/16, plus cited match facts. "
+        "Local dataset: StatsBomb World Cup 2022, plus cited match facts. "
         "Recorded events include fouls (including advantage), goals and penalty shots; "
         "they are not independent judgments of referee correctness."
     )
     st.info(
-        "World Cup VAR interventions and Premier League/World Cup added-time announcements use cited reports. "
+        "World Cup VAR interventions and added-time announcements use cited reports. "
         "Open VAR Analytics or Added Time Analytics for their coverage and sources. "
         "AVAR appointments and review durations remain unavailable."
     )
@@ -184,13 +170,6 @@ def referees(service, scope):
 @page("VAR Analytics")
 def var(service, scope):
     catalog = service.catalog(scope)
-    historical = catalog[(catalog.league == "Premier League") & (catalog.season == "2015/2016")]
-    if not historical.empty:
-        st.info(
-            "Premier League 2015/16 predates VAR, introduced in 2019/20. VAR is not applicable to these matches."
-        )
-        if len(historical) == len(catalog):
-            return
     frame = service.reviews(scope)
     if empty(
         frame,
@@ -394,7 +373,7 @@ def management(service, scope):
 def quality(service, scope):
     st.subheader("Source and coverage")
     st.write(
-        "This demonstration uses StatsBomb Open Data for World Cup 2022 and Premier League 2015/16, "
+        "This demonstration uses StatsBomb Open Data for World Cup 2022, "
         "plus selected facts and announcements from cited reports. "
         "Source files are pinned to a recorded repository revision and verified by SHA-256 before import. "
         "Original observations and import results are retained locally. Raw source files are excluded from GitHub."
@@ -410,18 +389,13 @@ def quality(service, scope):
         "and do not duplicate the same cards from lineup summaries."
     )
     st.info(
-        "Selected World Cup VAR outcomes and Premier League/World Cup announced minutes use facts from linked "
+        "Selected World Cup VAR outcomes and announced minutes use facts from linked "
         "match reports and live coverage. These are real, selected cases, not a complete tournament dataset. "
         "AVAR names, measured review durations, kickoff timezone and UTC instant remain unknown."
     )
     st.write(
         "Unknown outcomes stay unknown. Rates use known eligible outcomes and show their denominators. "
         "Review durations require recorded timing. Announced added time is distinct from time actually played."
-    )
-    st.info(
-        "Premier League 2015/16 has no VAR because the technology was not in use. "
-        "Only selected announced-time periods are verified; other periods remain unavailable. "
-        "Event clocks do not establish announcements."
     )
     batches, rejected = service.quality()
     st.subheader("Import history")

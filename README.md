@@ -96,7 +96,7 @@ Provider files are downloaded directly, not redistributed here. Review [StatsBom
 uv run --frozen streamlit run app.py --server.address=127.0.0.1 --server.port=8501 --server.headless=true
 ```
 
-Open **[http://127.0.0.1:8501/](http://127.0.0.1:8501/)** on the same computer. Keep the terminal running. With FIFA World Cup selected, the season selector shows only **2022** and Home shows **64 matches and 27 recorded VAR reviews**. Changing leagues resets the season to one belonging to that league. Premier League displays its loaded seasons only.
+Open **[http://127.0.0.1:8501/](http://127.0.0.1:8501/)** on the same computer. Keep the terminal running. FIFA World Cup season selector shows **2022** and Home shows **64 matches and 27 recorded VAR reviews**.
 
 After initial setup and loading, analytics work offline with the database running. External source links still require internet access.
 
@@ -155,49 +155,8 @@ The latest full regression run passed **77 tests**. The subsequent World Cup VAR
 | Missing tables/query error | From the repository root, run `uv run --frozen python -m var_analytics.cli migrate`. |
 | Empty dashboard | Complete all three demo imports and clear sidebar date filters; select World Cup 2022. |
 | Missing manifest/checksum error | Complete `scripts/fetch_demo.py` before import. Do not edit downloaded provider files. |
-| Supplement match mismatch | Import the pinned World Cup demo first. This is not a generic Premier League importer. |
+| Supplement match mismatch | Import the pinned World Cup demo first. |
 | Existing `.env` preserved | Expected on repeat setup. Continue using it if it belongs to this installation. |
-
-## Add Premier League 2015/16
-
-After completing the database setup, download and import the supported Premier League season:
-
-```sh
-uv run --frozen python scripts/fetch_demo.py --dataset premier-league
-uv run --frozen python -m var_analytics.cli import-premier-league
-```
-
-This retrieves 763 checksummed files into ignored `data/raw/statsbomb-premier-league` and adds **380 matches and 20 clubs** alongside the World Cup. Allow several minutes for the download. Repeating the successful import returns `already_loaded`. Select **Premier League** and **2015/2016** in the sidebar to explore its scores, main referees, players, decisions and cards. With both datasets loaded, Home shows **444 matches** across all leagues.
-
-The season predates VAR, introduced in 2019/20; its VAR page marks this as not applicable. Selected announced-time periods can be added with the supplement below; review durations are unavailable. The 15 verified World Cup announcements remain confined to their own matches. Provider clocks are preserved as local times without inventing a timezone.
-
-Verify both loaded datasets while the app is running:
-
-```sh
-uv run --frozen python scripts/verify_demo.py --with-world-cup-var --with-premier-league
-```
-
-Download this season before running the full development tests to include its mapping, idempotency, coexistence and filter tests. Without those source files, the Premier League tests are skipped. The [source assessment](docs/premier_league_sources.md) records coverage and alternatives for later VAR-era data.
-
-Sportmonks and API-Football document VAR events, but season coverage and field semantics need authenticated sample validation. The importer explicitly supports World Cup 2022 and Premier League 2015/16; it rejects other competition/season combinations.
-
-## Add verified 2015/16 announced time
-
-After importing the full historical season, load its cited announcement supplement:
-
-```sh
-uv run --frozen python -m var_analytics.cli import-premier-added-time
-```
-
-Select **Premier League → 2015/2016 → Added Time Analytics**. The supplement adds three records to existing matches: Arsenal–Leicester (14 February 2016), two minutes for the first half and four for the second; Chelsea–Tottenham (2 May 2016), six minutes for the second half. Chelsea's first-half announcement remains unverified. This is selected coverage across two of 380 matches, not a full-season announcement dataset. Missing periods and seconds stay unknown; VAR remains not applicable.
-
-No API key or new download is needed for this factual supplement. It is included with citations; source articles are not redistributed. Match IDs, dates, teams and scores are reconciled against the loaded provider data. Repeat imports do not duplicate records.
-
-```sh
-uv run --frozen python scripts/verify_demo.py --with-world-cup-var --with-premier-added-time
-```
-
-See [2015/16 announcement sources](docs/premier_league_sources.md#selected-201516-announced-time).
 
 ## Project documents and remaining work
 

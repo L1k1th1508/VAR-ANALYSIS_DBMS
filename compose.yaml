@@ -59,5 +59,16 @@ services:
       OWNER_DATABASE_URL: postgresql+psycopg://db_owner:${DB_OWNER_PASSWORD}@db:5432/var_analytics
       ADMIN_DATABASE_URL: postgresql+psycopg://app_admin:${APP_ADMIN_PASSWORD}@db:5432/var_analytics
     entrypoint: ["python", "-m", "var_analytics.cli"]
+  mongodb:
+    image: mongo:7.0-jammy
+    restart: unless-stopped
+    ports: ["127.0.0.1:27017:27017"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongoadmin
+      MONGO_INITDB_ROOT_PASSWORD: mongopassword
+      MONGO_INITDB_DATABASE: var_nosql
+    volumes:
+      - mongodata:/data/db
 volumes:
   pgdata:
+  mongodata:

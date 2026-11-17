@@ -14,19 +14,12 @@ from var_analytics.transform_validate import identity
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8501, help="local Streamlit port (default: 8501)")
-    parser.add_argument("--with-premier-league", action="store_true")
     parser.add_argument(
         "--with-world-cup-var", action="store_true", help="verify all 27 cited World Cup interventions"
-    )
-    parser.add_argument(
-        "--with-premier-added-time",
-        action="store_true",
-        help="verify the Premier League season and its announced-time supplement",
     )
     args = parser.parse_args()
     if not 1 <= args.port <= 65535:
         parser.error("--port must be between 1 and 65535")
-    check_premier_league = args.with_premier_league or args.with_premier_added_time
     root = Path(__file__).resolve().parents[1]
     load_dotenv(root / ".env")
     response = httpx.get(f"http://127.0.0.1:{args.port}/_stcore/health", timeout=10)
@@ -46,18 +39,6 @@ def main():
         }
     assert len(service.added_time_records(world_cup)) == 15
     assert int(service.teams(world_cup).cards.sum()) == 228
-    if check_premier_league:
-        premier = Scope(league_id=identity("league", 2), season_id=identity("season", "2/27"))
-        premier_totals = service.totals(premier)
-        assert int(premier_totals.matches) == 380
-        assert int(premier_totals.teams) == 20
-        assert int(service.referees(premier).matches.sum()) == 380
-        assert service.reviews(premier).empty
-        print("Premier League totals:", {k: int(v) for k, v in premier_totals.items()})
-        if args.with_premier_added_time:
-            assert len(service.added_time_records(premier)) == 3
-            means = service.added_time(premier).set_index("period_code")
-            assert means.loc[1, "mean_announced_minutes"] == 2
             assert means.loc[2, "mean_announced_minutes"] == 5
     root_app = AppTest.from_file(str(root / "app.py")).run(timeout=30)
     assert not root_app.exception and not root_app.error
